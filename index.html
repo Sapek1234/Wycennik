@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EKIPA GRAT TO - System v5.8</title>
+    <title>EKIPA GRAT TO - System v6.2 PROFIT CHECK</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --accent: #2d88ff; --secondary: #45bd62; --input-bg: #3a3b3c; }
         [data-theme="light"] { --bg-body: #f0f2f5; --bg-card: #ffffff; --text-main: #1c1e21; --accent: #1877f2; --secondary: #42b72a; --input-bg: #f0f2f5; }
@@ -49,20 +50,46 @@
         .btn-del { color: #ff4757; cursor: pointer; position: absolute; right: 12px; top: 12px; font-weight: bold; }
         .settings-bar { font-size: 12px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
         .settings-bar input { width: 70px; padding: 5px; border-radius: 5px; border: 1px solid #555; background: #222; color: white; }
+        .schedule-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--bg-card); border-bottom: 1px solid #333; }
+        .schedule-date { min-width: 80px; text-align: center; background: var(--accent); color: white; border-radius: 8px; padding: 5px; }
+        .schedule-date span { display: block; font-size: 18px; font-weight: bold; }
+
+        /* Profit Badge Style */
+        #profit-badge { margin-top: 10px; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: bold; text-align: center; display: none; }
+
+        /* PDF Styles */
+        #pdf-template, #pdf-report-template { position: absolute; left: -9999px; top: 0; width: 750px; background: white; color: black; padding: 50px; font-family: "Segoe UI", Arial, sans-serif; }
+        .pdf-header { display: flex; justify-content: space-between; border-bottom: 4px solid #2d88ff; padding-bottom: 20px; margin-bottom: 30px; }
+        .pdf-table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+        .pdf-table th { background: #f8f9fa; text-align: left; padding: 12px; border: 1px solid #dee2e6; color: #2d88ff; text-transform: uppercase; font-size: 12px; }
+        .pdf-table td { padding: 12px; border: 1px solid #dee2e6; font-size: 14px; }
+        .pdf-footer { margin-top: 40px; text-align: right; border-top: 1px solid #eee; padding-top: 20px; }
     </style>
 </head>
 <body data-theme="dark">
 
-<div id="toast">☁️ Zapisano w chmurze!</div>
-
-<div id="lock-screen">
-    <div class="pass-box">
-        <h3>🔒 EKIPA GRAT TO</h3>
-        <input type="password" id="passInput" placeholder="Hasło" style="margin-bottom: 10px; text-align: center; padding: 10px; border-radius: 8px; width: 200px; background: #222; color: white;">
-        <br>
-        <button class="action btn-calc" onclick="checkPass()" style="width: 220px;">WEJDŹ</button>
+<div id="pdf-template">
+    <div class="pdf-header">
+        <div><h1 style="color: #2d88ff; margin:0; font-size: 28px;" id="pdf-moja-firma">FIRMA</h1><p style="margin:5px 0; color: #666;">Profesjonalne Usługi Transportowe i Sprzątające</p></div>
+        <div style="text-align: right"><h2 style="margin:0; color: #333;">OFERTA / WYCENA</h2><p id="pdf-data-dzis" style="margin:5px 0; color: #666;"></p></div>
     </div>
+    <div style="margin-bottom: 30px;"><h4 style="border-bottom: 1px solid #eee; padding-bottom: 5px; color: #2d88ff;">ZLECENIODAWCA:</h4><p id="pdf-klient-name" style="font-size: 18px; font-weight: bold; margin: 5px 0;"></p></div>
+    <table class="pdf-table"><thead><tr><th>Usługa / Opis</th><th style="text-align: center;">Ilość</th><th style="text-align: right;">Cena</th></tr></thead><tbody id="pdf-tabela-body"></tbody></table>
+    <div class="pdf-footer"><p style="margin:0; font-size: 14px; color: #666;">Metoda płatności: <strong id="pdf-metoda-p"></strong></p><h2 style="color: #2d88ff; margin: 10px 0;">SUMA CAŁKOWITA: <span id="pdf-total-suma"></span></h2></div>
 </div>
+
+<div id="pdf-report-template">
+    <div class="pdf-header">
+        <div><h1 style="color: #2d88ff; margin:0; font-size: 28px;">EKIPA GRAT TO</h1><p style="margin:5px 0; color: #666;">Raport Finansowy Wygenerowany z Systemu</p></div>
+        <div style="text-align: right"><h2 style="margin:0; color: #333;">RAPORT</h2><p id="rep-data-gen" style="margin:5px 0; color: #666;"></p></div>
+    </div>
+    <p id="rep-okres" style="font-weight: bold; color: #2d88ff;"></p>
+    <table class="pdf-table"><thead id="rep-head"><tr><th>Data</th><th>Klient</th><th>Waga</th><th>Trasa</th><th>Zysk</th><th>Płatność</th></tr></thead><tbody id="rep-tabela-body"></tbody></table>
+    <div id="rep-summary" style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 5px solid #2d88ff;"></div>
+</div>
+
+<div id="toast">☁️ Zapisano w chmurze!</div>
+<div id="lock-screen"><div class="pass-box"><h3>🔒 EKIPA GRAT TO</h3><input type="password" id="passInput" placeholder="Hasło" style="margin-bottom: 10px; text-align: center; padding: 10px; border-radius: 8px; width: 200px; background: #222; color: white;"><br><button class="action btn-calc" onclick="checkPass()" style="width: 220px;">WEJDŹ</button></div></div>
 
 <div id="edit-modal">
     <div class="modal-content">
@@ -70,16 +97,14 @@
         <h3 style="margin:0; color: var(--accent);">Edytuj Zlecenie</h3>
         <input type="hidden" id="edit-id">
         <div id="modal-fields" class="grid-inputs" style="margin-top:15px;"></div>
-        <div class="btn-group">
-            <button class="action btn-save" onclick="updateZlecenie()">ZAPISZ ZMIANY</button>
-            <button class="action btn-pdf" onclick="drukujZModal()">DRUKUJ OFERTĘ</button>
-        </div>
+        <div class="btn-group"><button class="action btn-save" onclick="updateZlecenie()">ZAPISZ ZMIANY</button><button class="action btn-pdf" onclick="drukujZModal()">DRUKUJ OFERTĘ</button></div>
     </div>
 </div>
 
 <div id="app">
     <div class="nav-tabs">
         <button class="nav-btn active" onclick="switchTab('calc')">🧮 Kalkulator</button>
+        <button class="nav-btn" onclick="switchTab('schedule')">📅 Harmonogram</button>
         <button class="nav-btn" onclick="switchTab('stats')">📊 Statystyki</button>
         <button class="nav-btn" onclick="toggleTheme()" style="margin-left: auto;">🌗 TRYB</button>
     </div>
@@ -87,14 +112,13 @@
     <div class="left-col">
         <div id="view-calc" class="view-section active">
             <div class="card">
-                <div class="settings-bar">
-                    <div><b>CENNIK:</b> Os/h: <input type="number" id="p_os" value="80"> T: <input type="number" id="p_t" value="700"> KM: <input type="number" id="p_km" value="1.5"></div>
-                </div>
-                <label>FIRMA</label>
-                <input type="text" id="mojaFirma" value="EKIPA GRAT TO">
-                <label>KLIENT / ADRES</label>
-                <input type="text" id="klient" placeholder="Imię, Nazwisko, Adres">
+                <div class="settings-bar"><div><b>CENNIK:</b> Os/h: <input type="number" id="p_os" value="80"> T: <input type="number" id="p_t" value="700"> KM: <input type="number" id="p_km" value="1.5"></div></div>
+                <label>FIRMA</label><input type="text" id="mojaFirma" value="EKIPA GRAT TO">
+                <label>KLIENT / ADRES</label><input type="text" id="klient" placeholder="Imię, Nazwisko, Adres">
+                
                 <div class="grid-inputs">
+                    <div><label>Data Zlecenia</label><input type="date" id="dataZlecenia"></div>
+                    <div><label>Godzina</label><input type="time" id="godzinaZlecenia" value="08:00"></div>
                     <div><label>Czas (h)</label><input type="number" id="h" value="2"></div>
                     <div><label>Ekipa (os)</label><input type="number" id="osoby" value="2"></div>
                     <div><label>Waga (t)</label><input type="number" id="w" value="1" step="0.1"></div>
@@ -113,8 +137,16 @@
                 <div style="text-align: center; margin-top: 15px; padding: 15px; border: 2px solid var(--accent); border-radius: 10px;">
                     <div style="font-size: 32px; font-weight: bold; color: var(--accent);" id="suma">0.00 PLN</div>
                     <div id="zysk_os" style="color: var(--secondary); font-weight: bold; margin-top:5px;"></div>
+                    <div id="profit-badge"></div>
                     <div style="height: 120px; margin-top:10px;"><canvas id="chart"></canvas></div>
                 </div>
+            </div>
+        </div>
+
+        <div id="view-schedule" class="view-section">
+            <div class="card">
+                <h3 style="margin:0 0 15px 0;">📅 Nadchodzące Zlecenia</h3>
+                <div id="schedule-list">Brak zaplanowanych zadań...</div>
             </div>
         </div>
 
@@ -140,19 +172,16 @@
             </div>
         </div>
     </div>
-
-    <div class="list-panel">
-        <h3 style="margin:0 0 15px 0; color: var(--accent);">ZLECENIA</h3>
-        <div id="cloud-list">Pobieranie...</div>
-    </div>
+    <div class="list-panel"><h3 style="margin:0 0 15px 0; color: var(--accent);">HISTORIA</h3><div id="cloud-list">Pobieranie...</div></div>
 </div>
 
 <script>
     const TAJNE_HASLO = "1234"; 
-
     let currentFilter = 'month';
     let lastSnapData = [];
     let myChart = null, lineChart = null, payChart = null;
+
+    document.getElementById('dataZlecenia').valueAsDate = new Date();
 
     const firebaseConfig = {
         apiKey: "AIzaSyB_e0N5Gx5I9ADbCwzTmz-dQUtZ3hetzLw",
@@ -180,6 +209,7 @@
         document.getElementById('view-' + tab).classList.add('active');
         if (event) event.currentTarget.classList.add('active');
         if(tab === 'stats') updateStatsCharts();
+        if(tab === 'schedule') updateSchedule();
     }
 
     function setFilter(period, btn) {
@@ -187,6 +217,27 @@
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         updateStatsCharts();
+    }
+
+    // --- FUNKCJA OCENY OPŁACALNOŚCI ---
+    function ocenOplacalnosc(zysk, suma) {
+        const ratio = (zysk / suma) * 100;
+        const badge = document.getElementById('profit-badge');
+        badge.style.display = 'block';
+        
+        if (ratio > 70) {
+            badge.innerText = "⭐ OPŁACALNOŚĆ: BARDZO WYSOKA";
+            badge.style.background = "#2ecc71"; badge.style.color = "white";
+        } else if (ratio > 50) {
+            badge.innerText = "✅ OPŁACALNOŚĆ: WYSOKA";
+            badge.style.background = "#27ae60"; badge.style.color = "white";
+        } else if (ratio > 30) {
+            badge.innerText = "⚠️ OPŁACALNOŚĆ: ŚREDNIA";
+            badge.style.background = "#f1c40f"; badge.style.color = "black";
+        } else {
+            badge.innerText = "❌ OPŁACALNOŚĆ: NISKA";
+            badge.style.background = "#e74c3c"; badge.style.color = "white";
+        }
     }
 
     function oblicz(source = "") {
@@ -205,35 +256,34 @@
         const winda = parseInt(document.getElementById(prefix + 'winda').value);
         const klient = document.getElementById(prefix + 'klient').value;
         const metoda = document.getElementById(prefix + 'metoda').value;
+        const d_zlec = document.getElementById(prefix + 'dataZlecenia').value;
+        const g_zlec = document.getElementById(prefix + 'godzinaZlecenia').value;
+
         const mnoznik = 1 + (0.2 * p * (1 - winda));
         const c_utyl = w * r.t;
         const c_trans = (ah * 50) + (km * r.km);
         const c_praca = ek * (h * mnoznik) * r.os;
         const total = c_utyl + c_trans + c_praca;
+        
         if(source !== "modal") {
             document.getElementById('suma').innerText = total.toFixed(2) + " PLN";
             document.getElementById('zysk_os').innerText = "Na osobę: " + (c_praca/ek).toFixed(2) + " PLN";
             drawChart(c_utyl + c_trans, c_praca);
+            if(total > 0) ocenOplacalnosc(c_praca, total);
         }
-        return { total, c_utyl, c_trans, c_praca, ek, h, w, km, ah, p, winda, klient, metoda, timestamp: Date.now() };
+        return { total, c_utyl, c_trans, c_praca, ek, h, w, km, ah, p, winda, klient, metoda, d_zlec, g_zlec, timestamp: Date.now() };
     }
 
     function drawChart(k, z) {
         const ctx = document.getElementById('chart').getContext('2d');
         if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: { labels: ['Koszty', 'Zysk'], datasets: [{ data: [k, z], backgroundColor: ['#ff4757', '#2ecc71'], borderWidth: 0 }] },
-            options: { plugins: { legend: { display: false } }, maintainAspectRatio: false }
-        });
+        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Koszty', 'Zysk'], datasets: [{ data: [k, z], backgroundColor: ['#ff4757', '#2ecc71'], borderWidth: 0 }] }, options: { plugins: { legend: { display: false } }, maintainAspectRatio: false } });
     }
 
     function updateStatsCharts() {
-        let obrotPeriod = 0, zyskLaczny = 0, count = 0;
-        let gotowka = 0, przelew = 0;
+        let obrotPeriod = 0, zyskLaczny = 0, count = 0, gotowka = 0, przelew = 0;
         let labels = [], dataZysk = [], dataKoszty = [];
         const now = new Date();
-        
         const filtered = lastSnapData.filter(z => {
             if(!z.done) return false;
             const zD = new Date(z.timestamp);
@@ -242,84 +292,98 @@
             if(currentFilter === 'quarter') return (now - zD) / 86400000 <= 90;
             return zD.getFullYear() === now.getFullYear();
         });
-
         filtered.forEach(z => {
-            obrotPeriod += z.total; zyskLaczny += z.c_praca; count++;
-            if(z.metoda === 'Gotówka') gotowka += z.total; else przelew += z.total;
+            const t = parseFloat(z.total) || 0;
+            const zp = parseFloat(z.c_praca) || 0;
+            obrotPeriod += t; zyskLaczny += zp; count++;
+            if(z.metoda === 'Gotówka') gotowka += t; else przelew += t;
         });
-
-        if(currentFilter === 'week') {
-            labels = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Ndz"];
-            dataZysk = Array(7).fill(0); dataKoszty = Array(7).fill(0);
-            filtered.forEach(z => {
-                let dIdx = (new Date(z.timestamp).getDay() + 6) % 7;
-                dataZysk[dIdx] += z.c_praca; dataKoszty[dIdx] += (z.c_utyl + z.c_trans);
-            });
-        } else if(currentFilter === 'month') {
-            labels = ["T1", "T2", "T3", "T4+"];
-            dataZysk = Array(4).fill(0); dataKoszty = Array(4).fill(0);
-            filtered.forEach(z => {
-                let wIdx = Math.min(Math.floor((new Date(z.timestamp).getDate()-1)/7), 3);
-                dataZysk[wIdx] += z.c_praca; dataKoszty[wIdx] += (z.c_utyl + z.c_trans);
-            });
-        } else {
-            labels = ["Sty", "Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paź", "Lis", "Gru"];
-            dataZysk = Array(12).fill(0); dataKoszty = Array(12).fill(0);
-            filtered.forEach(z => {
-                let mIdx = new Date(z.timestamp).getMonth();
-                dataZysk[mIdx] += z.c_praca; dataKoszty[mIdx] += (z.c_utyl + z.c_trans);
-            });
-        }
-
+        
+        if(currentFilter === 'week') { labels = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Ndz"]; dataZysk = Array(7).fill(0); dataKoszty = Array(7).fill(0); filtered.forEach(z => { let dIdx = (new Date(z.timestamp).getDay() + 6) % 7; dataZysk[dIdx] += (parseFloat(z.c_praca) || 0); dataKoszty[dIdx] += ((parseFloat(z.c_utyl) || 0) + (parseFloat(z.c_trans) || 0)); });
+        } else if(currentFilter === 'month') { labels = ["T1", "T2", "T3", "T4+"]; dataZysk = Array(4).fill(0); dataKoszty = Array(4).fill(0); filtered.forEach(z => { let wIdx = Math.min(Math.floor((new Date(z.timestamp).getDate()-1)/7), 3); dataZysk[wIdx] += (parseFloat(z.c_praca) || 0); dataKoszty[wIdx] += ((parseFloat(z.c_utyl) || 0) + (parseFloat(z.c_trans) || 0)); });
+        } else { labels = ["Sty", "Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paź", "Lis", "Gru"]; dataZysk = Array(12).fill(0); dataKoszty = Array(12).fill(0); filtered.forEach(z => { let mIdx = new Date(z.timestamp).getMonth(); dataZysk[mIdx] += (parseFloat(z.c_praca) || 0); dataKoszty[mIdx] += ((parseFloat(z.c_utyl) || 0) + (parseFloat(z.c_trans) || 0)); }); }
+        
         document.getElementById('st-obrot').innerText = obrotPeriod.toFixed(0) + " zł";
         document.getElementById('st-zysk-laczny').innerText = zyskLaczny.toFixed(0) + " zł";
         document.getElementById('st-ile').innerText = count;
-
         if(lineChart) lineChart.destroy();
-        lineChart = new Chart(document.getElementById('lineChart'), {
-            type: 'bar',
-            data: { labels, datasets: [{ label: 'Zysk', data: dataZysk, backgroundColor: '#45bd62' }, { label: 'Koszty', data: dataKoszty, backgroundColor: '#ff4757' }] },
-            options: { maintainAspectRatio: false }
-        });
-
+        lineChart = new Chart(document.getElementById('lineChart'), { type: 'bar', data: { labels, datasets: [{ label: 'Zysk', data: dataZysk, backgroundColor: '#45bd62' }, { label: 'Koszty', data: dataKoszty, backgroundColor: '#ff4757' }] }, options: { maintainAspectRatio: false } });
         if(payChart) payChart.destroy();
-        payChart = new Chart(document.getElementById('payChart'), {
-            type: 'pie',
-            data: { labels: ['Gotówka', 'Przelew'], datasets: [{ data: [gotowka, przelew], backgroundColor: ['#f1c40f', '#3498db'] }] },
-            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 10 } } } } }
+        payChart = new Chart(document.getElementById('payChart'), { type: 'pie', data: { labels: ['Gotówka', 'Przelew'], datasets: [{ data: [gotowka, przelew], backgroundColor: ['#f1c40f', '#3498db'] }] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: document.body.getAttribute('data-theme')==='dark'?'#fff':'#000', font: { size: 10 } } } } } });
+    }
+
+    function updateSchedule() {
+        const schedList = document.getElementById('schedule-list');
+        schedList.innerHTML = "";
+        const upcoming = lastSnapData
+            .filter(z => !z.done)
+            .sort((a, b) => new Date(a.d_zlec + " " + a.g_zlec) - new Date(b.d_zlec + " " + b.g_zlec));
+        if(upcoming.length === 0) { schedList.innerHTML = "Brak nadchodzących zleceń."; return; }
+        upcoming.forEach(z => {
+            const dateObj = new Date(z.d_zlec);
+            const div = document.createElement('div');
+            div.className = "schedule-item";
+            div.innerHTML = `
+                <div class="schedule-date"><span>${dateObj.getDate()}</span>${dateObj.toLocaleString('pl-PL', {month: 'short'})}</div>
+                <div style="flex-grow: 1;">
+                    <b style="color:var(--accent)">${z.g_zlec}</b> - <b>${z.klient}</b><br>
+                    <small>📍 ${z.km}km | ⚖️ ${z.w}t | 👥 ${z.ek}os.</small>
+                </div>
+                <div style="font-weight:bold">${z.total.toFixed(2)} zł</div>`;
+            schedList.appendChild(div);
         });
     }
 
     async function generujPDFRaport() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const filtered = lastSnapData.filter(z => z.done);
-        let sW = 0, sK = 0, sZ = 0;
-        const rows = filtered.map(z => {
-            sW += z.w; sK += z.km; sZ += z.c_praca;
-            return [new Date(z.timestamp).toLocaleDateString(), z.klient, z.w + "t", z.km + "km", z.c_praca.toFixed(2) + " zł", z.metoda];
+        const now = new Date();
+        const filtered = lastSnapData.filter(z => {
+            if(!z.done) return false;
+            const zD = new Date(z.timestamp);
+            if(currentFilter === 'week') return (now - zD) / 86400000 <= 7;
+            if(currentFilter === 'month') return zD.getMonth() === now.getMonth() && zD.getFullYear() === now.getFullYear();
+            if(currentFilter === 'quarter') return (now - zD) / 86400000 <= 90;
+            return zD.getFullYear() === now.getFullYear();
         });
-        doc.setFontSize(16); doc.text("EKIPA GRAT TO - RAPORT", 14, 20);
-        doc.autoTable({ startY: 30, head: [['Data', 'Klient', 'Waga', 'Trasa', 'Zysk', 'Płatność']], body: rows });
-        doc.text(`Podsumowanie: ${sW.toFixed(1)}t | ${sK}km | ZYSK: ${sZ.toFixed(2)} PLN`, 14, doc.lastAutoTable.finalY + 10);
-        window.open(doc.output('bloburl'), '_blank');
+        if(filtered.length === 0) return alert("Brak danych!");
+        document.getElementById('rep-data-gen').innerText = now.toLocaleString();
+        document.getElementById('rep-okres').innerText = "OKRES: " + currentFilter.toUpperCase();
+        let sW = 0, sK = 0, sZ = 0, sO = 0, rowsHtml = "";
+        filtered.forEach(z => {
+            const zysk = parseFloat(z.c_praca) || 0;
+            const total = parseFloat(z.total) || 0;
+            const waga = parseFloat(z.w) || 0;
+            const trasa = parseFloat(z.km) || 0;
+            sW += waga; sK += trasa; sZ += zysk; sO += total;
+            rowsHtml += `<tr><td>${z.d_zlec || '-'}</td><td>${z.klient}</td><td>${waga.toFixed(1)}t</td><td>${trasa}km</td><td>${zysk.toFixed(2)} zł</td><td>${z.metoda || '-'}</td></tr>`;
+        });
+        document.getElementById('rep-tabela-body').innerHTML = rowsHtml;
+        document.getElementById('rep-summary').innerHTML = `<p><b>Łączny Obrót:</b> ${sO.toFixed(2)} PLN</p><p><b>Łączny Zysk Ekipy:</b> ${sZ.toFixed(2)} PLN</p><p><b>Statystyki:</b> ${sW.toFixed(1)}t wag i ${sK}km trasy</p>`;
+        const template = document.getElementById('pdf-report-template');
+        const canvas = await html2canvas(template, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        window.open(URL.createObjectURL(pdf.output('blob')), '_blank');
     }
 
     async function zapisz() {
         const d = oblicz(); if(!d.klient) return alert("Klient!");
-        await db.collection("zamowienia").add({ ...d, data: new Date().toLocaleDateString(), done: false });
+        await db.collection("zamowienia").add({ ...d, done: false });
         document.getElementById('toast').style.display='block'; setTimeout(()=>document.getElementById('toast').style.display='none',2000);
     }
 
     db.collection("zamowienia").orderBy("timestamp", "desc").onSnapshot(snap => {
         const list = document.getElementById('cloud-list'); list.innerHTML = ""; lastSnapData = [];
         snap.forEach(doc => {
-            const z = doc.data(); lastSnapData.push(z);
+            const z = doc.data(); z.id = doc.id; lastSnapData.push(z);
             const div = document.createElement('div');
             div.className = `item ${z.done ? 'done' : ''}`;
             div.innerHTML = `<div class="btn-del" onclick="usun('${doc.id}')">✖</div>
                 <div onclick='openEditModal("${doc.id}", ${JSON.stringify(z)})' style="cursor:pointer">
-                    <b>${z.klient}</b><br><small>${z.data} - ${z.total.toFixed(2)} PLN (${z.metoda || '?'})</small>
+                    <b>${z.klient}</b><br><small>${z.d_zlec || '?'} ${z.g_zlec || ''} - ${(parseFloat(z.total)||0).toFixed(2)} PLN</small>
                 </div>
                 <button class="btn-status" onclick="toggleDone('${doc.id}', ${z.done})" style="background:${z.done?'#42b72a':'#444'}; color:white;">
                     ${z.done ? '✅ GOTOWE' : '⏳ CZEKA'}
@@ -327,22 +391,23 @@
             list.appendChild(div);
         });
         if(document.getElementById('view-stats').classList.contains('active')) updateStatsCharts();
+        if(document.getElementById('view-schedule').classList.contains('active')) updateSchedule();
     });
 
-    async function toggleDone(id, status) { 
-        await db.collection("zamowienia").doc(id).update({ done: !status }); 
-    }
+    async function toggleDone(id, status) { await db.collection("zamowienia").doc(id).update({ done: !status }); }
 
     function openEditModal(id, z) {
         document.getElementById('edit-id').value = id;
         document.getElementById('modal-fields').innerHTML = `
             <div style="grid-column: span 2;"><label>KLIENT</label><input type="text" id="m-klient" value="${z.klient}"></div>
+            <div><label>Data</label><input type="date" id="m-dataZlecenia" value="${z.d_zlec}"></div>
+            <div><label>Godzina</label><input type="time" id="m-godzinaZlecenia" value="${z.g_zlec}"></div>
             <div><label>Czas (h)</label><input type="number" id="m-h" value="${z.h}"></div>
             <div><label>Ekipa</label><input type="number" id="m-osoby" value="${z.ek}"></div>
             <div><label>Waga (t)</label><input type="number" id="m-w" value="${z.w}"></div>
             <div><label>KM</label><input type="number" id="m-km" value="${z.km}"></div>
             <div><label>Płatność</label><select id="m-metoda"><option value="Gotówka" ${z.metoda=='Gotówka'?'selected':''}>Gotówka</option><option value="Przelew" ${z.metoda=='Przelew'?'selected':''}>Przelew</option></select></div>
-        `;
+            <input type="hidden" id="m-ah" value="${z.ah||1}"><input type="hidden" id="m-p" value="${z.p||0}"><input type="hidden" id="m-winda" value="${z.winda||1}">`;
         document.getElementById('edit-modal').style.display = 'flex';
     }
 
@@ -350,14 +415,51 @@
     async function updateZlecenie() {
         const id = document.getElementById('edit-id').value;
         const d = oblicz("modal");
-        await db.collection("zamowienia").doc(id).update({klient: d.klient, h: d.h, w: d.w, km: d.km, ek: d.ek, metoda: d.metoda});
+        await db.collection("zamowienia").doc(id).update({ 
+            klient: d.klient, h: d.h, w: d.w, km: d.km, ek: d.ek, metoda: d.metoda, 
+            d_zlec: d.d_zlec, g_zlec: d.g_zlec, total: d.total, c_praca: d.c_praca, c_utyl: d.c_utyl, c_trans: d.c_trans 
+        });
         closeModal();
     }
+
     async function usun(id) { if(confirm("Usunąć?")) await db.collection("zamowienia").doc(id).delete(); }
-    function wyczysc() { document.getElementById('klient').value = ""; oblicz(); }
-    function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
-    function drukuj() { window.print(); }
-    function drukujZModal() { window.print(); }
+    function wyczysc() { 
+        document.getElementById('klient').value = ""; 
+        document.getElementById('dataZlecenia').valueAsDate = new Date();
+        document.getElementById('godzinaZlecenia').value = "08:00";
+        document.getElementById('h').value = "2"; document.getElementById('osoby').value = "2";
+        document.getElementById('w').value = "1"; document.getElementById('km').value = "10";
+        document.getElementById('ah').value = "1"; document.getElementById('p').value = "0";
+        document.getElementById('winda').value = "1"; 
+        document.getElementById('profit-badge').style.display = 'none';
+        oblicz(); 
+    }
+
+    function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); if(document.getElementById('view-stats').classList.contains('active')) updateStatsCharts(); }
+
+    async function drukuj(source = "") {
+        const d = oblicz(source);
+        document.getElementById('pdf-moja-firma').innerText = document.getElementById('mojaFirma').value;
+        document.getElementById('pdf-klient-name').innerText = d.klient || "Brak danych";
+        document.getElementById('pdf-data-dzis').innerText = "Data wystawienia: " + new Date().toLocaleDateString();
+        document.getElementById('pdf-total-suma').innerText = d.total.toFixed(2) + " PLN";
+        document.getElementById('pdf-metoda-p').innerText = d.metoda;
+        document.getElementById('pdf-tabela-body').innerHTML = `
+            <tr><td>Praca ekipy (${d.ek} os. x ${d.h}h) <br><small>Termin: ${d.d_zlec} ${d.g_zlec}</small></td><td style="text-align:center">1 usł.</td><td style="text-align:right">${d.c_praca.toFixed(2)} PLN</td></tr>
+            <tr><td>Utylizacja / Gabaryty (${d.w} t)</td><td style="text-align:center">${d.w} t</td><td style="text-align:right">${d.c_utyl.toFixed(2)} PLN</td></tr>
+            <tr><td>Dojazd i logistyka (${d.km} km)</td><td style="text-align:center">${d.km} km</td><td style="text-align:right">${d.c_trans.toFixed(2)} PLN</td></tr>
+        `;
+        const template = document.getElementById('pdf-template');
+        const canvas = await html2canvas(template, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        window.open(URL.createObjectURL(pdf.output('blob')), '_blank');
+    }
+    function drukujZModal() { drukuj("modal"); }
 </script>
 </body>
 </html>
