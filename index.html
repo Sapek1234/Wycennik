@@ -3,74 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Zarządzania PRO v4.8</title>
+    <title>EKIPA GRAT TO - System v5.8</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root { --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --accent: #2d88ff; --secondary: #45bd62; --input-bg: #3a3b3c; }
         [data-theme="light"] { --bg-body: #f0f2f5; --bg-card: #ffffff; --text-main: #1c1e21; --accent: #1877f2; --secondary: #42b72a; --input-bg: #f0f2f5; }
-        
         #lock-screen { position: fixed; inset: 0; background: #1877f2; display: flex; align-items: center; justify-content: center; z-index: 9999; color: white; flex-direction: column; }
         .pass-box { background: var(--bg-card); padding: 30px; border-radius: 15px; color: var(--text-main); text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
-
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 10px; transition: 0.3s; }
         #app { display: none; grid-template-columns: 1fr 380px; gap: 20px; max-width: 1300px; margin: 0 auto; }
-        
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; grid-column: span 2; }
         .nav-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: var(--bg-card); color: var(--text-main); transition: 0.2s; }
         .nav-btn.active { background: var(--accent); color: white; }
-
         .card { background: var(--bg-card); padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.2); margin-bottom: 20px; }
         .view-section { display: none; }
         .view-section.active { display: block; }
-
         .filter-group { display: flex; gap: 5px; margin-bottom: 20px; justify-content: center; }
         .filter-btn { padding: 8px 15px; border: 1px solid var(--accent); background: transparent; color: var(--accent); border-radius: 20px; cursor: pointer; font-size: 12px; transition: 0.2s; }
         .filter-btn.active { background: var(--accent); color: white; }
-
-        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--secondary); color: white; padding: 12px 25px; border-radius: 30px; display: none; z-index: 10001; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--secondary); color: white; padding: 12px 25px; border-radius: 30px; display: none; z-index: 10001; font-weight: bold; }
         #edit-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; }
-        .modal-content { background: var(--bg-card); width: 90%; max-width: 500px; padding: 25px; border-radius: 15px; max-height: 90vh; overflow-y: auto; position: relative; }
-        .close-modal { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; font-weight: bold; }
-
-        .settings-bar { font-size: 11px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .settings-bar input { width: 65px; padding: 3px; border-radius: 4px; border: 1px solid #555; background: #222; color: white; }
-
+        .modal-content { background: var(--bg-card); width: 90%; max-width: 500px; padding: 25px; border-radius: 15px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .close-modal { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 24px; }
         .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 3px; margin-top: 8px; color: var(--accent); }
         input, select { width: 100%; padding: 10px; border: 1px solid #444; border-radius: 8px; background: var(--input-bg); color: var(--text-main); box-sizing: border-box; font-size: 14px; }
-        
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
-        button.action { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px; }
+        button.action { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; }
         .btn-calc { background: var(--accent); color: white; grid-column: span 2; }
         .btn-save { background: var(--secondary); color: white; grid-column: span 2; }
         .btn-clear { background: #606770; color: white; }
         .btn-pdf { background: #f39c12; color: white; }
-
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
         .stat-box { background: var(--input-bg); padding: 15px; border-radius: 10px; border-bottom: 4px solid var(--accent); }
-        .stat-val { font-size: 20px; font-weight: bold; color: var(--accent); }
+        .stat-val { font-size: 18px; font-weight: bold; color: var(--accent); }
         .stat-lbl { font-size: 10px; opacity: 0.7; text-transform: uppercase; }
-
         .list-panel { max-height: 95vh; overflow-y: auto; }
-        .item { background: var(--bg-card); padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 5px solid var(--accent); position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .item { background: var(--bg-card); padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 5px solid var(--accent); position: relative; }
         .item.done { border-left-color: var(--secondary); opacity: 0.6; }
         .btn-status { font-size: 10px; padding: 6px 10px; border-radius: 5px; border: none; cursor: pointer; background: #444; color: #ccc; margin-top: 8px; font-weight: bold; }
         .btn-del { color: #ff4757; cursor: pointer; position: absolute; right: 12px; top: 12px; font-weight: bold; }
-
-        #print-area { display: none; }
-        @media print {
-            @page { margin: 1cm; }
-            body { background: white !important; color: black !important; }
-            #app, #lock-screen, #edit-modal { display: none !important; }
-            #print-area { display: block !important; padding: 20px; }
-            .pdf-header { border-left: 8px solid #1877f2; padding-left: 15px; margin-bottom: 30px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #f0f2f5; padding: 10px; text-align: left; border-bottom: 2px solid #1877f2; }
-            td { padding: 10px; border-bottom: 1px solid #eee; }
-        }
+        .settings-bar { font-size: 12px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        .settings-bar input { width: 70px; padding: 5px; border-radius: 5px; border: 1px solid #555; background: #222; color: white; }
     </style>
 </head>
 <body data-theme="dark">
@@ -79,8 +57,8 @@
 
 <div id="lock-screen">
     <div class="pass-box">
-        <h3>🔒 System Zablokowany</h3>
-        <input type="password" id="passInput" placeholder="Hasło" style="margin-bottom: 10px; text-align: center; padding: 10px; border: 1px solid #555; border-radius: 8px; width: 200px; background: #222; color: white;">
+        <h3>🔒 EKIPA GRAT TO</h3>
+        <input type="password" id="passInput" placeholder="Hasło" style="margin-bottom: 10px; text-align: center; padding: 10px; border-radius: 8px; width: 200px; background: #222; color: white;">
         <br>
         <button class="action btn-calc" onclick="checkPass()" style="width: 220px;">WEJDŹ</button>
     </div>
@@ -89,9 +67,9 @@
 <div id="edit-modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal()">×</span>
-        <h3 id="modal-title" style="margin-top:0; color: var(--accent);">Edytuj Zlecenie</h3>
+        <h3 style="margin:0; color: var(--accent);">Edytuj Zlecenie</h3>
         <input type="hidden" id="edit-id">
-        <div id="modal-fields" class="grid-inputs"></div>
+        <div id="modal-fields" class="grid-inputs" style="margin-top:15px;"></div>
         <div class="btn-group">
             <button class="action btn-save" onclick="updateZlecenie()">ZAPISZ ZMIANY</button>
             <button class="action btn-pdf" onclick="drukujZModal()">DRUKUJ OFERTĘ</button>
@@ -111,14 +89,11 @@
             <div class="card">
                 <div class="settings-bar">
                     <div><b>CENNIK:</b> Os/h: <input type="number" id="p_os" value="80"> T: <input type="number" id="p_t" value="700"> KM: <input type="number" id="p_km" value="1.5"></div>
-                    <div style="margin-top:8px;"><b>DANE PDF:</b> Tel: <input type="text" id="mojTel" style="width:100px;"> Konto: <input type="text" id="mojeKonto" style="width:160px;"></div>
                 </div>
-
-                <label>MOJA FIRMA</label>
-                <input type="text" id="mojaFirma" value="Expert Przeprowadzki">
+                <label>FIRMA</label>
+                <input type="text" id="mojaFirma" value="EKIPA GRAT TO">
                 <label>KLIENT / ADRES</label>
                 <input type="text" id="klient" placeholder="Imię, Nazwisko, Adres">
-
                 <div class="grid-inputs">
                     <div><label>Czas (h)</label><input type="number" id="h" value="2"></div>
                     <div><label>Ekipa (os)</label><input type="number" id="osoby" value="2"></div>
@@ -127,96 +102,57 @@
                     <div><label>Czas auta (h)</label><input type="number" id="ah" value="1"></div>
                     <div><label>Piętro</label><input type="number" id="p" value="0"></div>
                     <div><label>Winda</label><select id="winda"><option value="1">TAK</option><option value="0">NIE</option></select></div>
-                    <div><label>Płatność</label><select id="metoda"><option>Gotówka</option><option>Przelew</option></select></div>
+                    <div><label>Płatność</label><select id="metoda"><option value="Gotówka">Gotówka</option><option value="Przelew">Przelew</option></select></div>
                 </div>
-
                 <div class="btn-group">
                     <button class="action btn-calc" onclick="oblicz()">PRZELICZ</button>
                     <button class="action btn-save" onclick="zapisz()">ZAPISZ W CHMURZE</button>
                     <button class="action btn-clear" onclick="wyczysc()">WYCZYŚĆ FORMULARZ</button>
                     <button class="action btn-pdf" onclick="drukuj()">DRUKUJ OFERTĘ</button>
                 </div>
-
-                <div style="text-align: center; margin-top: 15px; padding: 15px; border: 2px solid var(--accent); border-radius: 10px; background: rgba(45,136,255,0.05);">
+                <div style="text-align: center; margin-top: 15px; padding: 15px; border: 2px solid var(--accent); border-radius: 10px;">
                     <div style="font-size: 32px; font-weight: bold; color: var(--accent);" id="suma">0.00 PLN</div>
                     <div id="zysk_os" style="color: var(--secondary); font-weight: bold; margin-top:5px;"></div>
-                    <div style="height: 130px; margin-top:10px;"><canvas id="chart"></canvas></div>
+                    <div style="height: 120px; margin-top:10px;"><canvas id="chart"></canvas></div>
                 </div>
             </div>
         </div>
 
         <div id="view-stats" class="view-section">
             <div class="card">
-                <h3 style="margin-top:0; text-align: center;">📊 Porównanie Zysku i Kosztów</h3>
-                
+                <h3 style="margin:0 0 15px 0; text-align: center;">📊 Statystyki Finansowe</h3>
                 <div class="filter-group">
                     <button class="filter-btn" onclick="setFilter('week', this)">TYDZIEŃ</button>
                     <button class="filter-btn active" onclick="setFilter('month', this)">MIESIĄC</button>
                     <button class="filter-btn" onclick="setFilter('quarter', this)">KWARTAŁ</button>
                     <button class="filter-btn" onclick="setFilter('year', this)">ROK</button>
                 </div>
-
                 <div class="stats-grid">
                     <div class="stat-box"><div class="stat-val" id="st-obrot">0 zł</div><div class="stat-lbl">Obrót</div></div>
                     <div class="stat-box"><div class="stat-val" id="st-zysk-laczny" style="color:var(--secondary)">0 zł</div><div class="stat-lbl">Zysk Ekipy</div></div>
-                    <div class="stat-box"><div class="stat-val" id="st-ile">0</div><div class="stat-lbl">Zlecenia</div></div>
+                    <div class="stat-box"><div class="stat-val" id="st-ile">0</div><div class="stat-lbl">Ilość</div></div>
                 </div>
-                <div style="height: 350px;"><canvas id="lineChart"></canvas></div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div style="height: 300px;"><canvas id="lineChart"></canvas></div>
+                    <div style="height: 300px;"><canvas id="payChart"></canvas></div>
+                </div>
+                <button class="action btn-pdf" onclick="generujPDFRaport()" style="width:100%; margin-top:15px; background: #e74c3c;">🖨️ GENERUJ I DRUKUJ RAPORT PDF</button>
             </div>
         </div>
     </div>
 
     <div class="list-panel">
-        <h3 style="margin:0 0 15px 0; color: var(--accent);">☁️ OSTATNIE ZLECENIA</h3>
-        <div id="cloud-list">Pobieranie danych...</div>
+        <h3 style="margin:0 0 15px 0; color: var(--accent);">ZLECENIA</h3>
+        <div id="cloud-list">Pobieranie...</div>
     </div>
-</div>
-
-<div id="print-area">
-    <div class="pdf-header"><h1 style="margin:0; color: #1877f2; font-size: 28px;">OFERTA HANDLOWA</h1><p>Data: <span id="pr-data"></span></p></div>
-    <div style="display: flex; justify-content: space-between;">
-        <div style="width: 45%;"><p><b>WYSTAWCA:</b></p><p id="pr-firma" style="font-size: 18px; font-weight: bold; margin: 5px 0;"></p><p>Tel: <span id="pr-tel"></span></p><p>Konto: <span id="pr-konto"></span></p></div>
-        <div style="width: 45%; text-align: right;"><p><b>DLA:</b></p><p id="pr-klient" style="font-size: 18px; font-weight: bold; margin: 5px 0;"></p></div>
-    </div>
-    <table><thead><tr><th>OPIS USŁUGI</th><th style="text-align: right;">WARTOŚĆ</th></tr></thead><tbody id="pr-rows"></tbody></table>
-    <div style="text-align: right; margin-top: 30px;"><p style="font-size: 18px; margin-bottom: 5px;">RAZEM DO ZAPŁATY:</p><h2 style="font-size: 32px; color: #1877f2; margin: 0;" id="pr-suma">0.00 PLN</h2></div>
 </div>
 
 <script>
     const TAJNE_HASLO = "1234"; 
-    const nazwyMiesiecy = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+
     let currentFilter = 'month';
-    const cashSound = new Audio('https://www.soundjay.com/misc/sounds/cash-register-05.mp3');
-
-    function checkPass() {
-        if(document.getElementById('passInput').value === TAJNE_HASLO) {
-            cashSound.play().catch(() => {}); // Odblokowanie audio
-            document.getElementById('lock-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'grid';
-            oblicz();
-        } else { alert("Błędne hasło!"); }
-    }
-
-    function showToast() {
-        const t = document.getElementById('toast');
-        t.style.display = 'block';
-        setTimeout(() => { t.style.display = 'none'; }, 2000);
-    }
-
-    function switchTab(tab) {
-        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('view-' + tab).classList.add('active');
-        event.currentTarget.classList.add('active');
-        if(tab === 'stats') updateStatsCharts();
-    }
-
-    function setFilter(period, btn) {
-        currentFilter = period;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        updateStatsCharts();
-    }
+    let lastSnapData = [];
+    let myChart = null, lineChart = null, payChart = null;
 
     const firebaseConfig = {
         apiKey: "AIzaSyB_e0N5Gx5I9ADbCwzTmz-dQUtZ3hetzLw",
@@ -229,12 +165,28 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    let myChart = null, lineChart = null;
-    let lastSnapData = [];
 
-    function toggleTheme() {
-        const b = document.body;
-        b.setAttribute('data-theme', b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    function checkPass() {
+        if(document.getElementById('passInput').value === TAJNE_HASLO) {
+            document.getElementById('lock-screen').style.display = 'none';
+            document.getElementById('app').style.display = 'grid';
+            oblicz();
+        } else { alert("Hasło!"); }
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('view-' + tab).classList.add('active');
+        if (event) event.currentTarget.classList.add('active');
+        if(tab === 'stats') updateStatsCharts();
+    }
+
+    function setFilter(period, btn) {
+        currentFilter = period;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateStatsCharts();
     }
 
     function oblicz(source = "") {
@@ -252,6 +204,7 @@
         const p = parseFloat(document.getElementById(prefix + 'p').value) || 0;
         const winda = parseInt(document.getElementById(prefix + 'winda').value);
         const klient = document.getElementById(prefix + 'klient').value;
+        const metoda = document.getElementById(prefix + 'metoda').value;
         const mnoznik = 1 + (0.2 * p * (1 - winda));
         const c_utyl = w * r.t;
         const c_trans = (ah * 50) + (km * r.km);
@@ -262,7 +215,7 @@
             document.getElementById('zysk_os').innerText = "Na osobę: " + (c_praca/ek).toFixed(2) + " PLN";
             drawChart(c_utyl + c_trans, c_praca);
         }
-        return { total, c_utyl, c_trans, c_praca, ek, h, w, km, ah, p, winda, klient, timestamp: Date.now() };
+        return { total, c_utyl, c_trans, c_praca, ek, h, w, km, ah, p, winda, klient, metoda, timestamp: Date.now() };
     }
 
     function drawChart(k, z) {
@@ -277,113 +230,106 @@
 
     function updateStatsCharts() {
         let obrotPeriod = 0, zyskLaczny = 0, count = 0;
-        let labels = [], dataPointsZysk = [], dataPointsKoszty = [];
+        let gotowka = 0, przelew = 0;
+        let labels = [], dataZysk = [], dataKoszty = [];
         const now = new Date();
-
-        const filteredData = lastSnapData.filter(z => {
+        
+        const filtered = lastSnapData.filter(z => {
             if(!z.done) return false;
-            const zDate = new Date(z.timestamp);
-            if(currentFilter === 'week') {
-                const diff = (now - zDate) / (1000 * 60 * 60 * 24);
-                return diff <= 7;
-            }
-            if(currentFilter === 'month') {
-                return zDate.getMonth() === now.getMonth() && zDate.getFullYear() === now.getFullYear();
-            }
-            if(currentFilter === 'quarter') {
-                const qNow = Math.floor(now.getMonth() / 3);
-                const qZ = Math.floor(zDate.getMonth() / 3);
-                return qNow === qZ && zDate.getFullYear() === now.getFullYear();
-            }
-            if(currentFilter === 'year') return zDate.getFullYear() === now.getFullYear();
-            return true;
+            const zD = new Date(z.timestamp);
+            if(currentFilter === 'week') return (now - zD) / 86400000 <= 7;
+            if(currentFilter === 'month') return zD.getMonth() === now.getMonth() && zD.getFullYear() === now.getFullYear();
+            if(currentFilter === 'quarter') return (now - zD) / 86400000 <= 90;
+            return zD.getFullYear() === now.getFullYear();
         });
 
-        if(currentFilter === 'year' || currentFilter === 'quarter') {
-            labels = nazwyMiesiecy;
-            dataPointsZysk = Array(12).fill(0);
-            dataPointsKoszty = Array(12).fill(0);
-            filteredData.forEach(z => {
-                const m = new Date(z.timestamp).getMonth();
-                dataPointsZysk[m] += (z.c_praca || 0);
-                dataPointsKoszty[m] += ((z.c_utyl || 0) + (z.c_trans || 0));
-                obrotPeriod += (z.total || 0);
-                zyskLaczny += (z.c_praca || 0);
-                count++;
+        filtered.forEach(z => {
+            obrotPeriod += z.total; zyskLaczny += z.c_praca; count++;
+            if(z.metoda === 'Gotówka') gotowka += z.total; else przelew += z.total;
+        });
+
+        if(currentFilter === 'week') {
+            labels = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Ndz"];
+            dataZysk = Array(7).fill(0); dataKoszty = Array(7).fill(0);
+            filtered.forEach(z => {
+                let dIdx = (new Date(z.timestamp).getDay() + 6) % 7;
+                dataZysk[dIdx] += z.c_praca; dataKoszty[dIdx] += (z.c_utyl + z.c_trans);
+            });
+        } else if(currentFilter === 'month') {
+            labels = ["T1", "T2", "T3", "T4+"];
+            dataZysk = Array(4).fill(0); dataKoszty = Array(4).fill(0);
+            filtered.forEach(z => {
+                let wIdx = Math.min(Math.floor((new Date(z.timestamp).getDate()-1)/7), 3);
+                dataZysk[wIdx] += z.c_praca; dataKoszty[wIdx] += (z.c_utyl + z.c_trans);
             });
         } else {
-            // Grupowanie po dniach dla tygodnia/miesiąca
-            const dailyData = {};
-            filteredData.forEach(z => {
-                const d = new Date(z.timestamp).toLocaleDateString();
-                if(!dailyData[d]) dailyData[d] = { z: 0, k: 0 };
-                dailyData[d].z += (z.c_praca || 0);
-                dailyData[d].k += (z.c_utyl || 0) + (z.c_trans || 0);
-                obrotPeriod += (z.total || 0);
-                zyskLaczny += (z.c_praca || 0);
-                count++;
+            labels = ["Sty", "Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paź", "Lis", "Gru"];
+            dataZysk = Array(12).fill(0); dataKoszty = Array(12).fill(0);
+            filtered.forEach(z => {
+                let mIdx = new Date(z.timestamp).getMonth();
+                dataZysk[mIdx] += z.c_praca; dataKoszty[mIdx] += (z.c_utyl + z.c_trans);
             });
-            labels = Object.keys(dailyData).sort((a,b) => {
-                return new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-'));
-            });
-            dataPointsZysk = labels.map(l => dailyData[l].z);
-            dataPointsKoszty = labels.map(l => dailyData[l].k);
         }
 
         document.getElementById('st-obrot').innerText = obrotPeriod.toFixed(0) + " zł";
         document.getElementById('st-zysk-laczny').innerText = zyskLaczny.toFixed(0) + " zł";
         document.getElementById('st-ile').innerText = count;
 
-        const ctx = document.getElementById('lineChart').getContext('2d');
         if(lineChart) lineChart.destroy();
-        lineChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: 'Zysk', data: dataPointsZysk, borderColor: '#45bd62', backgroundColor: 'rgba(69, 189, 98, 0.1)', fill: true, tension: 0.3 },
-                    { label: 'Koszty', data: dataPointsKoszty, borderColor: '#ff4757', backgroundColor: 'rgba(255, 71, 87, 0.1)', fill: true, tension: 0.3 }
-                ]
-            },
-            options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: '#e4e6eb' } } }, scales: { y: { ticks: { color: '#e4e6eb' } }, x: { ticks: { color: '#e4e6eb' } } } }
+        lineChart = new Chart(document.getElementById('lineChart'), {
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Zysk', data: dataZysk, backgroundColor: '#45bd62' }, { label: 'Koszty', data: dataKoszty, backgroundColor: '#ff4757' }] },
+            options: { maintainAspectRatio: false }
+        });
+
+        if(payChart) payChart.destroy();
+        payChart = new Chart(document.getElementById('payChart'), {
+            type: 'pie',
+            data: { labels: ['Gotówka', 'Przelew'], datasets: [{ data: [gotowka, przelew], backgroundColor: ['#f1c40f', '#3498db'] }] },
+            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 10 } } } } }
         });
     }
 
+    async function generujPDFRaport() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const filtered = lastSnapData.filter(z => z.done);
+        let sW = 0, sK = 0, sZ = 0;
+        const rows = filtered.map(z => {
+            sW += z.w; sK += z.km; sZ += z.c_praca;
+            return [new Date(z.timestamp).toLocaleDateString(), z.klient, z.w + "t", z.km + "km", z.c_praca.toFixed(2) + " zł", z.metoda];
+        });
+        doc.setFontSize(16); doc.text("EKIPA GRAT TO - RAPORT", 14, 20);
+        doc.autoTable({ startY: 30, head: [['Data', 'Klient', 'Waga', 'Trasa', 'Zysk', 'Płatność']], body: rows });
+        doc.text(`Podsumowanie: ${sW.toFixed(1)}t | ${sK}km | ZYSK: ${sZ.toFixed(2)} PLN`, 14, doc.lastAutoTable.finalY + 10);
+        window.open(doc.output('bloburl'), '_blank');
+    }
+
     async function zapisz() {
-        const d = oblicz();
-        if(!d.klient) return alert("Podaj klienta!");
+        const d = oblicz(); if(!d.klient) return alert("Klient!");
         await db.collection("zamowienia").add({ ...d, data: new Date().toLocaleDateString(), done: false });
-        showToast();
+        document.getElementById('toast').style.display='block'; setTimeout(()=>document.getElementById('toast').style.display='none',2000);
     }
 
     db.collection("zamowienia").orderBy("timestamp", "desc").onSnapshot(snap => {
-        const list = document.getElementById('cloud-list');
-        list.innerHTML = "";
-        lastSnapData = [];
+        const list = document.getElementById('cloud-list'); list.innerHTML = ""; lastSnapData = [];
         snap.forEach(doc => {
-            const z = doc.data();
-            lastSnapData.push(z);
+            const z = doc.data(); lastSnapData.push(z);
             const div = document.createElement('div');
             div.className = `item ${z.done ? 'done' : ''}`;
-            div.innerHTML = `
-                <div class="btn-del" onclick="usun('${doc.id}')">✖</div>
+            div.innerHTML = `<div class="btn-del" onclick="usun('${doc.id}')">✖</div>
                 <div onclick='openEditModal("${doc.id}", ${JSON.stringify(z)})' style="cursor:pointer">
-                    <b>${z.klient}</b><br><small>${z.data} - ${z.total.toFixed(2)} PLN</small>
+                    <b>${z.klient}</b><br><small>${z.data} - ${z.total.toFixed(2)} PLN (${z.metoda || '?'})</small>
                 </div>
                 <button class="btn-status" onclick="toggleDone('${doc.id}', ${z.done})" style="background:${z.done?'#42b72a':'#444'}; color:white;">
-                    ${z.done ? '✅ ZROBIONE' : '⏳ CZEKA'}
-                </button>
-            `;
+                    ${z.done ? '✅ GOTOWE' : '⏳ CZEKA'}
+                </button>`;
             list.appendChild(div);
         });
         if(document.getElementById('view-stats').classList.contains('active')) updateStatsCharts();
     });
 
     async function toggleDone(id, status) { 
-        if(!status) { 
-            cashSound.currentTime = 0;
-            cashSound.play().catch(e => console.log("Audio play error")); 
-        }
         await db.collection("zamowienia").doc(id).update({ done: !status }); 
     }
 
@@ -395,9 +341,7 @@
             <div><label>Ekipa</label><input type="number" id="m-osoby" value="${z.ek}"></div>
             <div><label>Waga (t)</label><input type="number" id="m-w" value="${z.w}"></div>
             <div><label>KM</label><input type="number" id="m-km" value="${z.km}"></div>
-            <div><label>Auto (h)</label><input type="number" id="m-ah" value="${z.ah}"></div>
-            <div><label>Piętro</label><input type="number" id="m-p" value="${z.p}"></div>
-            <div><label>Winda</label><select id="m-winda"><option value="1" ${z.winda==1?'selected':''}>TAK</option><option value="0" ${z.winda==0?'selected':''}>NIE</option></select></div>
+            <div><label>Płatność</label><select id="m-metoda"><option value="Gotówka" ${z.metoda=='Gotówka'?'selected':''}>Gotówka</option><option value="Przelew" ${z.metoda=='Przelew'?'selected':''}>Przelew</option></select></div>
         `;
         document.getElementById('edit-modal').style.display = 'flex';
     }
@@ -405,35 +349,15 @@
     function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
     async function updateZlecenie() {
         const id = document.getElementById('edit-id').value;
-        const dataToUpdate = oblicz("modal");
-        await db.collection("zamowienia").doc(id).update(dataToUpdate);
-        alert("Zaktualizowano!"); closeModal();
+        const d = oblicz("modal");
+        await db.collection("zamowienia").doc(id).update({klient: d.klient, h: d.h, w: d.w, km: d.km, ek: d.ek, metoda: d.metoda});
+        closeModal();
     }
     async function usun(id) { if(confirm("Usunąć?")) await db.collection("zamowienia").doc(id).delete(); }
-
-    function wyczysc() {
-        document.getElementById('klient').value = "";
-        document.getElementById('h').value = 2; document.getElementById('osoby').value = 2;
-        document.getElementById('w').value = 1; document.getElementById('km').value = 10;
-        document.getElementById('ah').value = 1; document.getElementById('p').value = 0;
-        document.getElementById('winda').value = 1;
-        oblicz();
-    }
-
-    function drukuj(source = "") {
-        const d = source === "modal" ? oblicz("modal") : oblicz();
-        document.getElementById('pr-firma').innerText = document.getElementById('mojaFirma').value;
-        document.getElementById('pr-tel').innerText = document.getElementById('mojTel').value || "---";
-        document.getElementById('pr-konto').innerText = document.getElementById('mojeKonto').value || "---";
-        document.getElementById('pr-klient').innerText = d.klient || "---";
-        document.getElementById('pr-data').innerText = new Date().toLocaleDateString();
-        document.getElementById('pr-suma').innerText = d.total.toFixed(2) + " PLN";
-        document.getElementById('pr-rows').innerHTML = `
-            <tr><td><b>Transport/Utylizacja:</b> (${d.w}t, ${d.km}km)</td><td style="text-align:right;">${(d.c_utyl + d.c_trans).toFixed(2)} PLN</td></tr>
-            <tr><td><b>Praca zespołu:</b> Usługa przeprowadzki</td><td style="text-align:right;">${d.c_praca.toFixed(2)} PLN</td></tr>`;
-        window.print();
-    }
-    function drukujZModal() { drukuj("modal"); }
+    function wyczysc() { document.getElementById('klient').value = ""; oblicz(); }
+    function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
+    function drukuj() { window.print(); }
+    function drukujZModal() { window.print(); }
 </script>
 </body>
 </html>
