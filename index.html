@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EKIPA GRAT TO - System v9.2 AI GPS</title>
+    <title>EKIPA GRAT TO - System v9.9 FULL ANALYTICS</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --accent: #2d88ff; --secondary: #45bd62; --input-bg: #3a3b3c; --danger: #ff4757; --warning: #f39c12; }
+        :root { --bg-body: #18191a; --bg-card: #242526; --text-main: #e4e6eb; --accent: #2d88ff; --secondary: #45bd62; --input-bg: #3a3b3c; --danger: #ff4757; --warning: #f1c40f; --info: #3498db; }
         [data-theme="light"] { --bg-body: #f0f2f5; --bg-card: #ffffff; --text-main: #1c1e21; --accent: #1877f2; --secondary: #42b72a; --input-bg: #f0f2f5; }
         
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 10px; transition: 0.3s; }
@@ -18,46 +18,61 @@
         .pass-box { background: var(--bg-card); padding: 30px; border-radius: 15px; color: var(--text-main); text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
         
         #app { display: none; grid-template-columns: 1fr 380px; gap: 20px; max-width: 1400px; margin: 0 auto; }
-        @media (max-width: 900px) { #app { grid-template-columns: 1fr; } .list-panel { order: 2; } }
+        @media (max-width: 1000px) { #app { grid-template-columns: 1fr; } .list-panel { order: 2; } }
 
         .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; grid-column: span 2; overflow-x: auto; padding-bottom: 5px; }
-        .nav-btn { padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; background: var(--bg-card); color: var(--text-main); transition: 0.2s; white-space: nowrap; }
+        .nav-btn { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; background: var(--bg-card); color: var(--text-main); transition: 0.2s; white-space: nowrap; }
         .nav-btn.active { background: var(--accent); color: white; transform: translateY(-2px); }
         
-        .card { background: var(--bg-card); padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .card { background: var(--bg-card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
         .view-section { display: none; }
         .view-section.active { display: block; }
 
-        .settings-bar { font-size: 12px; padding: 15px; background: rgba(45, 136, 255, 0.1); border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--accent); display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
-        .settings-bar input { width: 65px; padding: 6px; background: #111; border: 1px solid #444; color: #fff; border-radius: 6px; text-align: center; }
+        .settings-bar { font-size: 11px; padding: 12px; background: rgba(45, 136, 255, 0.05); border-radius: 12px; margin-bottom: 20px; border: 1px dashed var(--accent); display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+        .settings-bar input { width: 55px; padding: 5px; background: #111; border: 1px solid #444; color: #fff; border-radius: 6px; text-align: center; }
 
-        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        label { display: block; font-size: 11px; font-weight: 900; margin-bottom: 4px; margin-top: 10px; color: var(--accent); text-transform: uppercase; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #444; border-radius: 10px; background: var(--input-bg); color: var(--text-main); font-size: 14px; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 10px; }
+        .full-width { grid-column: 1 / -1; }
 
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        button.action { padding: 14px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; text-transform: uppercase; }
-        .btn-calc { background: var(--accent); color: white; grid-column: span 2; font-size: 16px; }
+        label { display: block; font-size: 10px; font-weight: 900; margin-bottom: 4px; margin-top: 5px; color: var(--accent); text-transform: uppercase; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #444; border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-size: 14px; box-sizing: border-box; }
+
+        .btn-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 20px; }
+        button.action { padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.2s; text-transform: uppercase; }
+        .btn-calc { background: var(--accent); color: white; grid-column: span 2; font-size: 15px; }
         .btn-save { background: var(--secondary); color: white; grid-column: span 2; }
-        .btn-gps { background: #ea4335; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        .btn-pdf { background: #6c5ce7; color: white; }
+        .btn-clear { background: #444; color: white; }
         
-        .ai-dist-btn { background: #4285f4; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 8px; width: 100%; font-size: 13px; transition: 0.3s; }
+        .ai-dist-btn { background: #4285f4; color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-weight: bold; margin: 15px 0; width: 100%; font-size: 13px; box-shadow: 0 4px 10px rgba(66,133,244,0.3); }
 
-        .item { background: var(--bg-card); padding: 18px; margin-bottom: 15px; border-radius: 15px; border-left: 8px solid var(--accent); position: relative; }
-        .item.done { border-left-color: var(--secondary); }
-        .btn-status { width: 100%; padding: 15px; border-radius: 10px; border: none; cursor: pointer; margin-top: 15px; font-weight: 800; color: white; }
-        .status-wait { background: #444; }
-        .status-done { background: var(--secondary) !important; }
-        .btn-del-corner { color: var(--danger); cursor: pointer; position: absolute; right: 15px; top: 15px; font-size: 20px; }
+        .item { background: var(--bg-card); padding: 15px; margin-bottom: 12px; border-radius: 12px; border-left: 6px solid var(--accent); position: relative; font-size: 13px; }
+        .item.done { border-left-color: var(--secondary); opacity: 0.9; }
+        
+        .btn-status { width: 100%; padding: 12px; border-radius: 8px; border: none; cursor: pointer; margin-top: 10px; font-weight: 800; font-size: 11px; color: white; }
+        .status-wait { background: var(--warning); color: #000; }
+        .status-done { background: var(--secondary); }
+        
+        .btn-gps { background: #ea4335; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 8px; }
 
-        .crew-picker { display: flex; flex-wrap: wrap; gap: 8px; background: var(--input-bg); padding: 12px; border-radius: 10px; border: 1px solid #444; }
-        .crew-opt { padding: 8px 16px; background: #444; border-radius: 20px; font-size: 13px; cursor: pointer; }
+        .crew-picker { display: flex; flex-wrap: wrap; gap: 6px; background: var(--input-bg); padding: 10px; border-radius: 10px; border: 1px solid #444; }
+        .crew-opt { padding: 6px 12px; background: #444; border-radius: 15px; font-size: 12px; cursor: pointer; }
         .crew-opt.selected { background: var(--accent); color: white; }
-        .crew-tag { background: var(--accent); color: white; padding: 3px 8px; border-radius: 6px; font-size: 11px; margin-right: 5px; font-weight: bold; }
+
+        .stats-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        .stats-table th, .stats-table td { padding: 12px; border-bottom: 1px solid #333; text-align: left; }
+        .chart-container { height: 200px; margin-top: 20px; }
+        
+        .finances-box { display:flex; justify-content:space-around; margin-top:15px; background:rgba(0,0,0,0.2); padding:15px; border-radius:10px; border: 1px solid #444; }
+        .finances-box div { text-align: center; }
+        .finances-box b { font-size: 18px; color: var(--accent); display: block; margin-top: 5px; }
+
+        .btn-period { flex: 1; padding: 10px; background: #444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .btn-period.active { background: var(--accent); }
 
         #edit-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--bg-card); width: 95%; max-width: 550px; padding: 30px; border-radius: 20px; position: relative; }
-        #toast { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: var(--secondary); color: white; padding: 15px 35px; border-radius: 40px; display: none; z-index: 10001; font-weight: bold; }
+        .modal-content { background: var(--bg-card); width: 95%; max-width: 500px; padding: 25px; border-radius: 20px; max-height: 90vh; overflow-y: auto; }
+
         #pdf-template { position: absolute; left: -9999px; top: 0; width: 800px; background: white; color: black; padding: 60px; }
     </style>
 </head>
@@ -65,32 +80,25 @@
 
 <div id="pdf-template">
     <div style="display: flex; justify-content: space-between; border-bottom: 5px solid #2d88ff; padding-bottom: 25px;">
-        <div><h1 id="pdf-moja-firma" style="color: #2d88ff; margin:0; font-size: 32px;"></h1><p style="font-size: 18px; color: #555;">Profesjonalny Wywóz i Utylizacja</p></div>
-        <div style="text-align: right"><h2>KOSZTORYS USŁUGI</h2><p id="pdf-data-dzis" style="font-weight: bold;"></p></div>
+        <div><h1 id="pdf-moja-firma" style="color: #2d88ff; margin:0; font-size: 32px;"></h1><p style="font-size: 18px; color: #555;">Kalkulacja Kosztów</p></div>
+        <div style="text-align: right"><h2>KOSZTORYS</h2><p id="pdf-data-dzis"></p></div>
     </div>
-    <div style="margin: 40px 0;">
-        <h4 style="color: #2d88ff; border-bottom: 1px solid #eee; padding-bottom: 5px;">KLIENT / ADRES:</h4>
-        <p id="pdf-klient-name" style="font-size: 22px; font-weight: bold; margin-top: 10px;"></p>
-    </div>
-    <table style="width: 100%; border-collapse: collapse; margin: 40px 0;">
-        <thead><tr style="background: #f0f2f5;"><th style="padding:15px; border:1px solid #ddd; text-align:left;">ELEMENT WYCENY</th><th style="padding:15px; border:1px solid #ddd; text-align:right;">KWOTA</th></tr></thead>
-        <tbody id="pdf-tabela-body"></tbody>
-    </table>
-    <div style="text-align: right; margin-top: 50px; padding: 25px; background: #f0f2f5; border-radius: 10px;">
-        <h2 style="color: #2d88ff; margin: 0; font-size: 28px;">SUMA BRUTTO: <span id="pdf-total-suma"></span></h2>
-    </div>
+    <div style="margin: 40px 0;"><h4 style="color: #2d88ff;">KLIENT:</h4><p id="pdf-klient-name" style="font-size: 20px; font-weight: bold;"></p></div>
+    <table style="width: 100%; border-collapse: collapse; margin: 40px 0;"><tbody id="pdf-tabela-body"></tbody></table>
+    <div style="text-align: right; padding: 25px; background: #f0f2f5; border-radius: 10px;"><h2 id="pdf-total-suma"></h2></div>
 </div>
 
-<div id="toast">✅ Zapisano pomyślnie!</div>
 <div id="lock-screen"><div class="pass-box"><h2>🔐 PANEL OPERACYJNY</h2><input type="password" id="passInput" placeholder="Hasło" style="text-align:center;"><br><button class="action btn-calc" onclick="checkPass()" style="width:100%; margin-top:15px;">ZALOGUJ</button></div></div>
 
 <div id="edit-modal">
     <div class="modal-content">
-        <span style="position:absolute; right:25px; top:20px; cursor:pointer; font-size:28px;" onclick="closeModal()">×</span>
         <h2 style="color: var(--accent); margin-top:0;">Edycja Zlecenia</h2>
         <input type="hidden" id="edit-id">
         <div id="modal-fields" class="grid-inputs"></div>
-        <div class="btn-group"><button class="action btn-save" onclick="updateZlecenie()">ZAPISZ ZMIANY</button></div>
+        <div class="btn-group">
+            <button class="action btn-save" onclick="updateZlecenie()">ZAPISZ ZMIANY</button>
+            <button class="action btn-clear" onclick="closeModal()">ANULUJ</button>
+        </div>
     </div>
 </div>
 
@@ -98,7 +106,7 @@
     <div class="nav-tabs">
         <button class="nav-btn active" onclick="switchTab('calc')">🧮 Kalkulator</button>
         <button class="nav-btn" onclick="switchTab('schedule')">📅 Harmonogram</button>
-        <button class="nav-btn" onclick="switchTab('stats')">📊 Statystyki</button>
+        <button class="nav-btn" onclick="switchTab('stats')">📊 Statystyki i Raporty</button>
         <button class="nav-btn" onclick="switchTab('crew')">👥 Pracownicy</button>
         <button class="nav-btn" onclick="toggleTheme()" style="margin-left: auto;">🌗</button>
     </div>
@@ -111,298 +119,366 @@
                     Os/h: <input type="number" id="p_os" value="80">
                     Tona: <input type="number" id="p_t" value="700">
                     KM: <input type="number" id="p_km" value="1.5">
+                    Auto/h: <input type="number" id="p_auto" value="50">
                 </div>
 
-                <label>Nazwa firmy</label><input type="text" id="mojaFirma" value="EKIPA GRAT TO">
-                <label>Klient</label><input type="text" id="klient" placeholder="Imię Nazwisko">
-                <label>Adres Klienta</label>
-                <input type="text" id="adres" placeholder="Ulica, Numer, Miasto">
-                <button class="ai-dist-btn" id="btn-calc-dist" onclick="calculateDistanceAI()">🤖 OBLICZ TRASĘ (GPS: Baza -> Klient -> PSZOK -> Baza)</button>
+                <div class="grid-inputs">
+                    <div class="full-width"><label>Nazwa Firmy</label><input type="text" id="mojaFirma" value="EKIPA GRAT TO"></div>
+                    <div class="full-width"><label>Klient</label><input type="text" id="klient" placeholder="Imię i Nazwisko"></div>
+                    <div class="full-width"><label>Adres (do GPS)</label><input type="text" id="adres" placeholder="Ulica, Miasto"></div>
+                </div>
+
+                <button class="ai-dist-btn" id="btn-calc-dist" onclick="calculateDistanceAI()">🤖 OBLICZ TRASĘ AI (GPS)</button>
                 
                 <div class="grid-inputs">
                     <div><label>Data</label><input type="date" id="dataZlecenia"></div>
                     <div><label>Godzina</label><input type="time" id="godzinaZlecenia" value="08:00"></div>
-                    <div style="grid-column: span 2;"><label>Ekipa</label><div id="crew-selector-main" class="crew-picker"></div></div>
+                    <div class="full-width"><label>Ekipa</label><div id="crew-selector-main" class="crew-picker"></div></div>
                     <div><label>Praca (h)</label><input type="number" id="h" value="2"></div>
                     <div><label>Waga (t)</label><input type="number" id="w" value="1" step="0.1"></div>
                     <div><label>Trasa (km)</label><input type="number" id="km" value="10"></div>
                     <div><label>Czas auta (h)</label><input type="number" id="ah" value="1"></div>
                     <div><label>Piętro</label><input type="number" id="p" value="0"></div>
                     <div><label>Winda</label><select id="winda"><option value="1">JEST</option><option value="0">BRAK</option></select></div>
+                    <div class="full-width"><label>Forma Płatności</label><select id="platnosc"><option value="Gotówka">Gotówka</option><option value="Przelew">Przelew</option></select></div>
                 </div>
                 
                 <div class="btn-group">
                     <button class="action btn-calc" onclick="oblicz()">PRZELICZ</button>
                     <button class="action btn-save" onclick="zapisz()">ZAPISZ DO BAZY</button>
-                    <button class="action btn-clear" onclick="wyczysc()">CZYŚĆ FORMULARZ</button>
-                    <button class="action btn-pdf" onclick="drukuj()">GENERUJ PDF</button>
+                    <button class="action btn-pdf" onclick="drukuj()">PDF WYCENY</button>
+                    <button class="action btn-clear" onclick="wyczysc()">CZYŚĆ</button>
                 </div>
 
-                <div style="text-align: center; margin-top: 25px; padding: 20px; border: 3px solid var(--accent); border-radius: 15px; background: rgba(0,0,0,0.1);">
-                    <div style="font-size: 36px; font-weight: 900; color: var(--accent);" id="suma">0.00 PLN</div>
-                    <div id="zysk_os" style="color: var(--secondary); font-weight: bold; margin-top:8px;"></div>
-                    <div style="height: 150px; margin-top:20px;"><canvas id="chart"></canvas></div>
+                <div style="text-align: center; margin-top: 25px; padding: 20px; border: 2px solid var(--accent); border-radius: 15px;">
+                    <div style="font-size: 38px; font-weight: 900; color: var(--accent);" id="suma">0.00 PLN</div>
+                    <div id="zysk_os" style="color: var(--secondary); font-weight: bold; font-size: 14px; margin-top:5px;"></div>
+                    <div style="height: 120px; margin-top:10px;"><canvas id="chart"></canvas></div>
                 </div>
             </div>
-        </div>
-
-        <div id="view-schedule" class="view-section">
-            <div class="card"><h2>📅 Harmonogram & Nawigacja</h2><div id="schedule-list"></div></div>
         </div>
 
         <div id="view-stats" class="view-section">
             <div class="card">
-                <div class="stats-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
-                    <div class="card"><div class="stat-val" id="st-obrot">0 zł</div><small>Przychód</small></div>
-                    <div class="card"><div class="stat-val" id="st-zysk-laczny" style="color:var(--secondary)">0 zł</div><small>Zysk</small></div>
-                    <div class="card"><div class="stat-val" id="st-ile">0</div><small>Ilość</small></div>
+                <h2>📊 Analiza Finansowa</h2>
+                
+                <table class="stats-table">
+                    <thead><tr><th>OKRES</th><th>OBRÓT</th><th>ZYSK EKIPY</th><th>NA OSOBĘ</th></tr></thead>
+                    <tbody id="stats-table-body"></tbody>
+                </table>
+
+                <div class="finances-box">
+                    <div>💵 Gotówka: <b id="st-gotowka">0 PLN</b></div>
+                    <div>💳 Przelew: <b id="st-przelew">0 PLN</b></div>
                 </div>
-                <div id="raport-podsumowanie" class="raport-text" style="background:rgba(0,0,0,0.2); padding:15px; border-radius:10px; margin-top:10px;"></div>
+
+                <div style="display: flex; gap: 10px; margin-top: 25px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                    <button id="btn-p-week" class="btn-period active" onclick="renderLineChart('week')">Tydzień</button>
+                    <button id="btn-p-month" class="btn-period" onclick="renderLineChart('month')">Miesiąc</button>
+                    <button id="btn-p-all" class="btn-period" onclick="renderLineChart('all')">Ogółem</button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div class="chart-container"><canvas id="stats-line-chart"></canvas></div>
+                    <div class="chart-container"><canvas id="worker-pie-chart"></canvas></div>
+                </div>
+
+                <div id="raport-tekstowy" style="margin-top:20px; padding:15px; background:rgba(255,255,255,0.05); border-radius:10px; font-size:13px; line-height:1.6; border: 1px solid #444;"></div>
+                
+                <button class="action btn-save" style="width:100%; margin-top:15px;" onclick="drukujRaport()">🖨️ DRUKUJ RAPORT MIESIĘCZNY</button>
             </div>
+        </div>
+
+        <div id="view-schedule" class="view-section">
+            <div class="card"><h2>📅 Harmonogram i Dojazdy</h2><div id="schedule-list"></div></div>
         </div>
 
         <div id="view-crew" class="view-section">
             <div class="card">
                 <h2>👥 Baza Pracowników</h2>
-                <div style="display: flex; gap: 10px;"><input type="text" id="newCrewName" placeholder="Imię..."><button class="action btn-save" onclick="dodajPracownika()">DODAJ</button></div>
+                <div style="display: flex; gap: 10px;"><input type="text" id="newCrewName" placeholder="Imię..."><button class="action btn-save" style="width:auto;" onclick="dodajPracownika()">DODAJ</button></div>
                 <div id="crew-list-full" style="margin-top:20px;"></div>
             </div>
         </div>
     </div>
     
-    <div class="list-panel"><h3>HISTORIA</h3><div id="cloud-list"></div></div>
+    <div class="list-panel"><h3>HISTORIA ZLECEŃ</h3><div id="cloud-list"></div></div>
 </div>
 
 <script>
-    // --- KONFIGURACJA GPS & BAZY ---
+    // === KONFIGURACJA BAZOWA ===
     const GOOGLE_KEY = "AIzaSyDlos1sVs8-fsMSYb83dOC2tTlqBX0r_4I";
     const BAZA_ADRES = "Górczewska 224, Warszawa";
     const PSZOK_POINTS = ["Tatarska 2/4, Warszawa", "Kampinoska 1, Warszawa"];
     const TAJNE_HASLO = "1234";
-
+    
     let lastSnapData = [], workers = [], selectedWorkers = [];
-    let myChart = null;
+    let myChart = null, myLineChart = null, myWorkerPieChart = null;
+    let tempWorkerEarnings = {}; // Zmienna tymczasowa dla raportu do druku
+    let currentChartPeriod = 'month'; // Domyślny widok wykresu
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyB_e0N5Gx5I9ADbCwzTmz-dQUtZ3hetzLw",
-        authDomain: "kalkulator-ekipy.firebaseapp.com",
-        projectId: "kalkulator-ekipy",
-        storageBucket: "kalkulator-ekipy.firebasestorage.app",
-        messagingSenderId: "988124606603",
-        appId: "1:988124606603:web:1f1b932d7283ac4a0b648e"
-    };
+    // === FIREBASE ===
+    const firebaseConfig = { apiKey: "AIzaSyB_e0N5Gx5I9ADbCwzTmz-dQUtZ3hetzLw", authDomain: "kalkulator-ekipy.firebaseapp.com", projectId: "kalkulator-ekipy", storageBucket: "kalkulator-ekipy.firebasestorage.app", messagingSenderId: "988124606603", appId: "1:988124606603:web:1f1b932d7283ac4a0b648e" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // --- FUNKCJA OBLICZANIA TRASY AI ---
-    async function calculateDistanceAI() {
-        const clientAddr = document.getElementById('adres').value;
-        if(!clientAddr) return alert("Najpierw wpisz adres klienta!");
-        
-        const btn = document.getElementById('btn-calc-dist');
-        btn.innerText = "⌛ SZUKAM NAJKRÓTSZEJ DROGI...";
-        btn.disabled = true;
-// Używamy darmowego proxy, aby ominąć błąd CORS
-    const proxyUrl = "https://corsproxy.io/?";
-        
-        try {
-            let bestTotalKm = 9999;
-            
-            // Pętla sprawdzająca, który PSZOK jest "po drodze" lub bliżej
-            for(let pszok of PSZOK_POINTS) {
-                const stops = [BAZA_ADRES, clientAddr, pszok, BAZA_ADRES];
-                let totalMeters = 0;
+    function checkPass() { if(document.getElementById('passInput').value === TAJNE_HASLO) { document.getElementById('lock-screen').style.display = 'none'; document.getElementById('app').style.display = 'grid'; init(); } else alert("Błąd!"); }
 
-                for(let i=0; i < stops.length - 1; i++) {
-
-
-                    const googleUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(stops[i])}&destinations=${encodeURIComponent(stops[i+1])}&key=${GOOGLE_KEY}`;
-                
-                    const resp = await fetch(proxyUrl + encodeURIComponent(googleUrl));
-                    const data = await resp.json();
-                    
-                    //const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(stops[i])}&destinations=${encodeURIComponent(stops[i+1])}&key=${GOOGLE_KEY}`;
-                    //const resp = await fetch(url);
-                   // const data = await resp.json();
-                    
-                    if(data.rows[0].elements[0].status === "OK") {
-                        totalMeters += data.rows[0].elements[0].distance.value;
-                    } else {
-                        throw new Error("Adres nieznany dla Google");
-                    }
-                }
-                
-                let currentKm = totalMeters / 1000;
-                if(currentKm < bestTotalKm) bestTotalKm = currentKm;
-            }
-
-            document.getElementById('km').value = Math.round(bestTotalKm);
-            btn.innerText = `✅ TRASA: ${Math.round(bestTotalKm)} KM`;
-            oblicz();
-        } catch(e) {
-            alert("Błąd Google Maps. Sprawdź czy profil płatności jest aktywny i adres poprawny.");
-            btn.innerText = "🤖 OBLICZ TRASĘ PONOWNIE";
-        } finally {
-            btn.disabled = false;
-        }
-    }
-
-    // --- NAWIGACJA Z BAZY DO KLIENTA ---
-    function openNav(addr) { 
-        const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(BAZA_ADRES)}&destination=${encodeURIComponent(addr)}&travelmode=driving`;
-        window.open(url, '_blank'); 
-    }
-
-    // --- SYSTEM LOGOWANIA ---
-    function checkPass() {
-        if(document.getElementById('passInput').value === TAJNE_HASLO) {
-            document.getElementById('lock-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'grid';
-            document.getElementById('dataZlecenia').valueAsDate = new Date();
-            initWorkers(); oblicz();
-        } else alert("Błędne hasło!");
-    }
-
-    // --- ZARZĄDZANIE PRACOWNIKAMI ---
-    function initWorkers() {
+    function init() {
+        document.getElementById('dataZlecenia').valueAsDate = new Date();
         db.collection("pracownicy").onSnapshot(snap => {
             workers = []; snap.forEach(doc => workers.push({ id: doc.id, ...doc.data() }));
             renderCrewPickers(); renderCrewListFull();
         });
-    }
-
-    function renderCrewPickers() {
-        const el = document.getElementById('crew-selector-main'); el.innerHTML = "";
-        workers.forEach(w => {
-            const opt = document.createElement('div'); opt.className = `crew-opt ${selectedWorkers.includes(w.name) ? 'selected' : ''}`;
-            opt.innerText = w.name; opt.onclick = () => {
-                if(selectedWorkers.includes(w.name)) selectedWorkers = selectedWorkers.filter(n => n !== w.name);
-                else selectedWorkers.push(w.name);
-                renderCrewPickers(); oblicz();
-            };
-            el.appendChild(opt);
+        db.collection("zamowienia").orderBy("timestamp", "desc").onSnapshot(snap => {
+            lastSnapData = []; snap.forEach(doc => { let d = doc.data(); d.id = doc.id; lastSnapData.push(d); });
+            renderHistory(); updateStatsAll(); updateSchedule();
         });
     }
 
-    function renderCrewListFull() {
-        const el = document.getElementById('crew-list-full'); el.innerHTML = "";
-        workers.forEach(w => { el.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; padding:15px; margin-bottom:10px;"><b>${w.name}</b><button class="action" onclick="usunPracownika('${w.id}')" style="background:var(--danger); color:white; border:none; border-radius:5px; cursor:pointer; padding:5px 10px;">USUŃ</button></div>`; });
+    // === GPS PROXY OMIJAJĄCE BŁĄD CORS ===
+    async function calculateDistanceAI() {
+        const clientAddr = document.getElementById('adres').value; if(!clientAddr) return alert("Wpisz adres!");
+        const btn = document.getElementById('btn-calc-dist'); btn.innerText = "⌛ SZUKAM NAJKRÓTSZEJ TRASY..."; btn.disabled = true;
+        const proxyUrl = "https://corsproxy.io/?";
+        try {
+            let bestKm = 9999;
+            for(let pszok of PSZOK_POINTS) {
+                const stops = [BAZA_ADRES, clientAddr, pszok, BAZA_ADRES];
+                let totalM = 0;
+                for(let i=0; i<stops.length-1; i++) {
+                    const googleUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(stops[i])}&destinations=${encodeURIComponent(stops[i+1])}&key=${GOOGLE_KEY}`;
+                    const res = await fetch(proxyUrl + encodeURIComponent(googleUrl));
+                    const data = await res.json();
+                    if(data.rows[0].elements[0].status === "OK") totalM += data.rows[0].elements[0].distance.value;
+                }
+                if((totalM/1000) < bestKm) bestKm = totalM/1000;
+            }
+            document.getElementById('km').value = Math.round(bestKm);
+            btn.innerText = `✅ OBLICZONO: ${Math.round(bestKm)} KM`; oblicz();
+        } catch(e) { alert("Błąd połączenia z mapami."); btn.innerText = "🤖 OBLICZ TRASĘ PONOWNIE"; } finally { btn.disabled = false; }
     }
 
-    async function dodajPracownika() {
-        const name = document.getElementById('newCrewName').value; if(!name) return;
-        await db.collection("pracownicy").add({ name }); document.getElementById('newCrewName').value = "";
+    // NAPRAWIONA FUNKCJA NAWIGACJI
+    function openNav(addr) { 
+        window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(BAZA_ADRES)}&destination=${encodeURIComponent(addr)}&travelmode=driving`, '_blank'); 
     }
-    async function usunPracownika(id) { if(confirm("Usunąć pracownika?")) await db.collection("pracownicy").doc(id).delete(); }
 
-    // --- MATEMATYKA WYCENY ---
+    // === MATEMATYKA ===
     function oblicz(source = "") {
-        const prefix = source === "modal" ? "m-" : "";
-        const r = { os: parseFloat(document.getElementById('p_os').value)||80, t: parseFloat(document.getElementById('p_t').value)||700, km: parseFloat(document.getElementById('p_km').value)||1.5 };
-        const h = parseFloat(document.getElementById(prefix + 'h').value)||0, w = parseFloat(document.getElementById(prefix + 'w').value)||0, km = parseFloat(document.getElementById(prefix + 'km').value)||0;
-        const ah = parseFloat(document.getElementById(prefix + 'ah').value)||0, p = parseFloat(document.getElementById(prefix + 'p').value)||0, winda = parseInt(document.getElementById(prefix + 'winda').value);
-        const ek = source === "modal" ? (document.getElementById('m-imiona').value.split(',').filter(x=>x).length || 1) : Math.max(selectedWorkers.length, 1);
-        const names = source === "modal" ? document.getElementById('m-imiona').value : selectedWorkers.join(', ');
-
-        const c_utyl = w * r.t, c_trans = (ah * 50) + (km * r.km), c_praca = ek * (h * (1 + (0.2 * p * (1 - winda)))) * r.os, total = c_utyl + c_trans + c_praca;
+        const p = source === "modal" ? "m-" : "";
+        const cennik = { os: parseFloat(document.getElementById('p_os').value)||80, t: parseFloat(document.getElementById('p_t').value)||700, km: parseFloat(document.getElementById('p_km').value)||1.5, auto: parseFloat(document.getElementById('p_auto').value)||50 };
         
+        const h = parseFloat(document.getElementById(p+'h').value)||0;
+        const w = parseFloat(document.getElementById(p+'w').value)||0;
+        const km = parseFloat(document.getElementById(p+'km').value)||0;
+        const ah = parseFloat(document.getElementById(p+'ah').value)||1;
+        const piętro = parseFloat(document.getElementById(p+'p').value)||0;
+        const winda = parseInt(document.getElementById(p+'winda').value)||0;
+        
+        const ek = source === "modal" ? (document.getElementById('m-imiona').value.split(',').filter(x=>x).length || 1) : Math.max(selectedWorkers.length, 1);
+        const imiona = source === "modal" ? document.getElementById('m-imiona').value : selectedWorkers.join(', ');
+        
+        const c_utyl = w * cennik.t;
+        const c_trans = (ah * cennik.auto) + (km * cennik.km); // Auto liczone jako czas auta (h) * Stawka Auto
+        const c_praca = ek * (h * (1 + (0.2 * piętro * (1 - winda)))) * cennik.os;
+        const total = c_utyl + c_trans + c_praca;
+
         if(source !== "modal") {
             document.getElementById('suma').innerText = total.toFixed(2) + " PLN";
-            document.getElementById('zysk_os').innerText = `Zysk / głowę: ${(c_praca/ek).toFixed(2)} zł`;
-            drawDonutChart(c_utyl + c_trans, c_praca);
+            document.getElementById('zysk_os').innerText = `Zysk na osobę: ${(c_praca/ek).toFixed(2)} zł`;
+            if(myChart) myChart.destroy();
+            myChart = new Chart(document.getElementById('chart'), { type: 'doughnut', data: { labels: ['Koszty (Auto+Utyl)', 'Zysk (Robocizna)'], datasets: [{ data: [c_utyl+c_trans, c_praca], backgroundColor: ['#ff4757', '#2ecc71'], borderWidth: 0 }] }, options: { plugins: { legend: {display: false} }, cutout: '70%', maintainAspectRatio: false } });
         }
-        return { total, c_utyl, c_trans, c_praca, ek, imiona: names, h, w, km, ah, p, winda, klient: document.getElementById(prefix + 'klient').value, adres: document.getElementById(prefix + 'adres').value, d_zlec: document.getElementById(prefix + 'dataZlecenia').value, g_zlec: document.getElementById(prefix + 'godzinaZlecenia').value, timestamp: Date.now() };
+        
+        return { total, c_utyl, c_trans, c_praca, ek, h, w, km, ah, p: piętro, winda, imiona, platnosc: document.getElementById(p+'platnosc').value, klient: document.getElementById(p+'klient').value, adres: document.getElementById(p+'adres').value, d_zlec: document.getElementById(p+'dataZlecenia').value, g_zlec: document.getElementById(p+'godzinaZlecenia').value, timestamp: Date.now() };
     }
 
-    function drawDonutChart(k, z) {
-        const ctx = document.getElementById('chart').getContext('2d'); if(myChart) myChart.destroy();
-        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Koszty', 'Zysk'], datasets: [{ data: [k, z], backgroundColor: ['#ff4757', '#2ecc71'], borderWidth: 0 }] }, options: { plugins: { legend: { display: false } }, maintainAspectRatio: false, cutout: '70%' } });
-    }
+    async function zapisz() { const d = oblicz(); if(!d.klient || !d.adres) return alert("Brak klienta/adresu!"); await db.collection("zamowienia").add({ ...d, done: false }); wyczysc(); }
 
-    // --- OPERACJE NA BAZIE DANYCH ---
-    async function zapisz() {
-        const d = oblicz(); if(!d.klient || !d.adres) return alert("Uzupełnij klienta i adres!");
-        await db.collection("zamowienia").add({ ...d, done: false }); showToast(); wyczysc();
-    }
-
-    db.collection("zamowienia").orderBy("timestamp", "desc").onSnapshot(snap => {
-        const list = document.getElementById('cloud-list'); list.innerHTML = ""; lastSnapData = [];
-        snap.forEach(doc => {
-            const z = doc.data(); z.id = doc.id; lastSnapData.push(z);
-            const tags = z.imiona ? z.imiona.split(',').map(n => `<span class="crew-tag">${n.trim()}</span>`).join('') : '';
+    // === ZARZĄDZANIE WIDOKAMI I BAZĄ ===
+    function renderHistory() {
+        const list = document.getElementById('cloud-list'); list.innerHTML = "";
+        lastSnapData.forEach(z => {
+            const tags = z.imiona ? z.imiona.split(',').map(n => `<span style="background:var(--accent); font-size:9px; padding:2px 5px; border-radius:4px; margin-right:3px; color:white;">${n.trim()}</span>`).join('') : '';
             const div = document.createElement('div'); div.className = `item ${z.done ? 'done' : ''}`;
-            div.innerHTML = `<div class="btn-del-corner" onclick="usun('${doc.id}')">×</div>
-                <div onclick='openEditModal("${doc.id}", ${JSON.stringify(z)})' style="cursor:pointer">
-                    <b>${z.klient}</b><br><small>${z.adres}</small><br><small>${z.d_zlec} | ${z.total.toFixed(0)} zł</small><br>${tags}
+            div.innerHTML = `<span style="position:absolute; right:10px; top:10px; cursor:pointer;" onclick="usun('${z.id}')">🗑️</span>
+                <div onclick='openEditModal("${z.id}", ${JSON.stringify(z).replace(/'/g, "&apos;")})' style="cursor:pointer;">
+                    <b>${z.klient}</b><br><small>${z.adres}</small><br><b>${z.total.toFixed(0)} zł</b> (${z.platnosc||'Gotówka'})<br>${tags}
                 </div>
-                <button class="btn-gps" onclick="openNav('${z.adres}')">📍 PROWADŹ DO KLIENTA</button>
-                <button class="btn-status ${z.done ? 'status-done' : 'status-wait'}" onclick="toggleDone('${doc.id}', ${z.done})">${z.done ? '✅ GOTOWE' : '⏳ W TRAKCIE'}</button>`;
+                <button class="btn-gps" onclick="openNav('${z.adres}')">📍 NAWIGUJ</button>
+                <button class="btn-status ${z.done ? 'status-done' : 'status-wait'}" onclick="toggleDone('${z.id}', ${z.done})">${z.done ? '✅ ZAKOŃCZONE' : '⏳ W REALIZACJI'}</button>`;
             list.appendChild(div);
         });
-        updateStatsCharts(); updateSchedule();
-    });
-
-    async function toggleDone(id, s) { await db.collection("zamowienia").doc(id).update({ done: !s }); }
-    async function usun(id) { if(confirm("Usunąć zlecenie?")) await db.collection("zamowienia").doc(id).delete(); }
-
-    function openEditModal(id, z) {
-        document.getElementById('edit-id').value = id;
-        document.getElementById('modal-fields').innerHTML = `
-            <div style="grid-column: span 2;"><label>Klient</label><input type="text" id="m-klient" value="${z.klient}"></div>
-            <div style="grid-column: span 2;"><label>Adres</label><input type="text" id="m-adres" value="${z.adres||''}"></div>
-            <div style="grid-column: span 2;"><label>Ekipa</label><input type="text" id="m-imiona" value="${z.imiona||''}"></div>
-            <div><label>h</label><input type="number" id="m-h" value="${z.h}"></div>
-            <div><label>t</label><input type="number" id="m-w" value="${z.w}"></div>
-            <div><label>km</label><input type="number" id="m-km" value="${z.km}"></div>
-            <div><label>Data</label><input type="date" id="m-dataZlecenia" value="${z.d_zlec}"></div>
-            <input type="hidden" id="m-ah" value="${z.ah||1}"><input type="hidden" id="m-p" value="${z.p||0}"><input type="hidden" id="m-winda" value="${z.winda||1}"><input type="hidden" id="m-godzinaZlecenia" value="${z.g_zlec}">`;
-        document.getElementById('edit-modal').style.display = 'flex';
-    }
-    function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
-    async function updateZlecenie() { await db.collection("zamowienia").doc(document.getElementById('edit-id').value).update(oblicz("modal")); closeModal(); showToast(); }
-    
-    function wyczysc() { document.getElementById('klient').value = ""; document.getElementById('adres').value = ""; selectedWorkers = []; renderCrewPickers(); document.getElementById('btn-calc-dist').innerText = "🤖 OBLICZ TRASĘ (GPS)"; oblicz(); }
-    function showToast() { document.getElementById('toast').style.display='block'; setTimeout(()=>document.getElementById('toast').style.display='none',3000); }
-    function switchTab(tab) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); document.getElementById('view-' + tab).classList.add('active'); event.currentTarget.classList.add('active'); }
-
-    function updateStatsCharts() {
-        let obrot = 0, zysk = 0, ile = 0;
-        lastSnapData.filter(z => z.done).forEach(z => { obrot += z.total; zysk += z.c_praca; ile++; });
-        document.getElementById('st-obrot').innerText = obrot.toFixed(0) + " zł"; 
-        document.getElementById('st-zysk-laczny').innerText = zysk.toFixed(0) + " zł"; 
-        document.getElementById('st-ile').innerText = ile;
-        document.getElementById('raport-podsumowanie').innerHTML = `Średnio: <b>${ile>0?(obrot/ile).toFixed(0):0} zł</b>. Łączny zysk ekipy: <b>${zysk.toFixed(0)} zł</b>.`;
     }
 
+    // PIĘKNY HARMONOGRAM ZE STAREJ WERSJI
     function updateSchedule() {
         const el = document.getElementById('schedule-list'); el.innerHTML = "";
         lastSnapData.filter(z => !z.done).sort((a,b)=> new Date(a.d_zlec)-new Date(b.d_zlec)).forEach(z => { 
             el.innerHTML += `<div class="item" style="border-left-color: var(--warning);">
-                <b>${z.klient}</b><br><small>${z.d_zlec} o ${z.g_zlec}</small><br>📍 ${z.adres}
-                <button class="btn-gps" onclick="openNav('${z.adres}')">JEDŹ DO KLIENTA</button>
+                <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                    <div><b>${z.klient}</b><br><small style="color:var(--accent); font-weight:bold; font-size:12px;">📅 ${z.d_zlec} | 🕒 ${z.g_zlec}</small><br><small>📍 ${z.adres}</small></div>
+                </div>
+                <button class="btn-gps" onclick="openNav('${z.adres}')">📍 PROWADŹ DO KLIENTA</button>
             </div>`; 
         });
     }
 
+    // === ZAAWANSOWANE STATYSTYKI ===
+    function updateStatsAll() {
+        const now = new Date();
+        const startWeek = new Date(now.setDate(now.getDate() - now.getDay() + 1)).setHours(0,0,0,0);
+        const startMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+        let s = { w: {ob:0, z:0, os:0, n:0}, m: {ob:0, z:0, os:0, n:0}, a: {ob:0, z:0, os:0, n:0} };
+        let workerEarnings = {};
+        let sumGotowka = 0, sumPrzelew = 0;
+
+        lastSnapData.filter(z => z.done).forEach(z => {
+            const zos = z.c_praca / (z.ek||1);
+            if(z.timestamp >= startWeek) { s.w.ob+=z.total; s.w.z+=z.c_praca; s.w.os+=zos; s.w.n++; }
+            if(z.timestamp >= startMonth) { s.m.ob+=z.total; s.m.z+=z.c_praca; s.m.os+=zos; s.m.n++; }
+            s.a.ob+=z.total; s.a.z+=z.c_praca; s.a.os+=zos; s.a.n++;
+            
+            // Płatności
+            if(z.platnosc === 'Przelew') sumPrzelew += z.total; else sumGotowka += z.total;
+
+            // Zarobki Pracowników
+            if(z.imiona) {
+                let wList = z.imiona.split(',');
+                wList.forEach(wName => {
+                    let n = wName.trim();
+                    if(n) workerEarnings[n] = (workerEarnings[n] || 0) + zos;
+                });
+            }
+        });
+
+        tempWorkerEarnings = workerEarnings; // Do raportu PDF
+
+        // TABELA
+        document.getElementById('stats-table-body').innerHTML = `
+            <tr><td><b>TYDZIEŃ</b></td><td>${s.w.ob.toFixed(0)} zł</td><td>${s.w.z.toFixed(0)} zł</td><td>${(s.w.os/(s.w.n||1)).toFixed(0)} zł</td></tr>
+            <tr><td><b>MIESIĄC</b></td><td>${s.m.ob.toFixed(0)} zł</td><td>${s.m.z.toFixed(0)} zł</td><td>${(s.m.os/(s.m.n||1)).toFixed(0)} zł</td></tr>
+            <tr><td><b>OGÓŁEM</b></td><td>${s.a.ob.toFixed(0)} zł</td><td>${s.a.z.toFixed(0)} zł</td><td>-</td></tr>`;
+        
+        // PŁATNOŚCI
+        document.getElementById('st-gotowka').innerText = `${sumGotowka.toFixed(0)} PLN`;
+        document.getElementById('st-przelew').innerText = `${sumPrzelew.toFixed(0)} PLN`;
+
+        // RAPORT TEKSTOWY
+        document.getElementById('raport-tekstowy').innerHTML = `🚀 <b>PODSUMOWANIE BIZNESU:</b><br>Zrealizowano ${s.a.n} zleceń. Łączny obrót to <b>${s.a.ob.toFixed(2)} zł</b>. <br>Z tego czysty zysk przeznaczony na wynagrodzenia dla ekipy wynosi <b>${s.a.z.toFixed(2)} zł</b>. Średnia rentowność: ${s.a.ob>0 ? ((s.a.z/s.a.ob)*100).toFixed(1) : 0}%.`;
+
+        // Odświeżenie interaktywnego wykresu liniowego Zyski vs Koszty
+        renderLineChart(currentChartPeriod);
+
+        // WYKRES KOŁOWY PRACOWNIKÓW
+        if(myWorkerPieChart) myWorkerPieChart.destroy();
+        let wLabels = Object.keys(workerEarnings);
+        let wData = Object.values(workerEarnings);
+        myWorkerPieChart = new Chart(document.getElementById('worker-pie-chart'), { type: 'pie', data: { labels: wLabels, datasets: [{ data: wData, backgroundColor: ['#ff9ff3', '#feca57', '#ff6b6b', '#48dbfb', '#1dd1a1', '#5f27cd'] }] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#fff' } }, title: { display: true, color: '#fff', text: 'Zarobki Pracowników' } } } });
+    }
+
+    // === WYKRES LINIOWY (ZYSKI VS KOSZTY) ===
+    function renderLineChart(period) {
+        currentChartPeriod = period;
+        const now = new Date();
+        const startWeek = new Date(now.setDate(now.getDate() - now.getDay() + 1)).setHours(0,0,0,0);
+        const startMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+        let filtered = lastSnapData.filter(z => z.done);
+        if(period === 'week') filtered = filtered.filter(z => z.timestamp >= startWeek);
+        if(period === 'month') filtered = filtered.filter(z => z.timestamp >= startMonth);
+
+        let grouped = {};
+        filtered.forEach(z => {
+            let dateStr = z.d_zlec || new Date(z.timestamp).toISOString().split('T')[0];
+            if(!grouped[dateStr]) grouped[dateStr] = { zysk: 0, koszt: 0 };
+            grouped[dateStr].zysk += z.c_praca;
+            grouped[dateStr].koszt += (z.c_utyl + z.c_trans);
+        });
+
+        let sortedDates = Object.keys(grouped).sort();
+        let zyskData = sortedDates.map(d => grouped[d].zysk);
+        let kosztData = sortedDates.map(d => grouped[d].koszt);
+
+        if(myLineChart) myLineChart.destroy();
+        myLineChart = new Chart(document.getElementById('stats-line-chart'), {
+            type: 'line',
+            data: {
+                labels: sortedDates,
+                datasets: [
+                    { label: 'Zysk Ekipy', data: zyskData, borderColor: '#2ecc71', backgroundColor: 'rgba(46, 204, 113, 0.2)', fill: true, tension: 0.3 },
+                    { label: 'Koszty (Auto+Utyl)', data: kosztData, borderColor: '#ff4757', backgroundColor: 'rgba(255, 71, 87, 0.2)', fill: true, tension: 0.3 }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#fff' } }, title: { display: true, color: '#fff', text: 'Przebieg Finansowy w Czasie' } },
+                scales: { x: { ticks: { color: '#aaa' } }, y: { ticks: { color: '#aaa' } } }
+            }
+        });
+
+        document.querySelectorAll('.btn-period').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-p-' + period).classList.add('active');
+    }
+
+    // === RAPORT DO DRUKU ===
+    function drukujRaport() {
+        let html = `<h2 style="color:#2d88ff; border-bottom:2px solid #2d88ff; padding-bottom:10px;">RAPORT FINANSOWY - EKIPA GRAT TO</h2>`;
+        html += `<h3>1. Ogólne zestawienie</h3>`;
+        html += document.getElementById('stats-table-body').parentElement.outerHTML;
+        html += `<h3 style="margin-top:30px;">2. Rozkład Płatności</h3>`;
+        html += `<b>Suma w Gotówce:</b> ${document.getElementById('st-gotowka').innerText} <br>`;
+        html += `<b>Suma na Przelew:</b> ${document.getElementById('st-przelew').innerText} <br>`;
+        html += `<h3 style="margin-top:30px;">3. Wyliczenie wypłat dla pracowników</h3><ul style="font-size:18px;">`;
+        for(let [w, val] of Object.entries(tempWorkerEarnings)) { html += `<li><b>${w}</b>: ${val.toFixed(2)} PLN</li>`; }
+        html += `</ul><p style="margin-top:50px; text-align:right; font-size:12px; color:#555;">Wygenerowano: ${new Date().toLocaleString()}</p>`;
+        
+        let win = window.open('', '', 'width=800,height=800');
+        win.document.write(`<html><head><title>Raport Finansowy</title><style>body{font-family:sans-serif; padding:40px; color:#111;} table{width:100%; border-collapse:collapse; margin-bottom:20px;} th,td{border:1px solid #ddd; padding:12px; text-align:left;} th{background:#f0f2f5;}</style></head><body>${html}</body></html>`);
+        win.document.close(); setTimeout(() => win.print(), 500);
+    }
+
+    // === FUNKCJE POMOCNICZE ===
+    async function toggleDone(id, s) { await db.collection("zamowienia").doc(id).update({ done: !s }); }
+    async function usun(id) { if(confirm("Usunąć?")) await db.collection("zamowienia").doc(id).delete(); }
+
+    function openEditModal(id, z) {
+        document.getElementById('edit-id').value = id;
+        document.getElementById('modal-fields').innerHTML = `
+            <div class="full-width"><label>Klient</label><input type="text" id="m-klient" value="${z.klient}"></div>
+            <div class="full-width"><label>Adres</label><input type="text" id="m-adres" value="${z.adres||''}"></div>
+            <div class="full-width"><label>Ekipa (po przecinku)</label><input type="text" id="m-imiona" value="${z.imiona||''}"></div>
+            <div><label>Godziny pracy</label><input type="number" id="m-h" value="${z.h}"></div>
+            <div><label>Waga (t)</label><input type="number" id="m-w" value="${z.w}"></div>
+            <div><label>Trasa (km)</label><input type="number" id="m-km" value="${z.km}"></div>
+            <div><label>Czas auta (h)</label><input type="number" id="m-ah" value="${z.ah||1}"></div>
+            <div><label>Data</label><input type="date" id="m-dataZlecenia" value="${z.d_zlec}"></div>
+            <div><label>Godzina</label><input type="time" id="m-godzinaZlecenia" value="${z.g_zlec||'08:00'}"></div>
+            <div class="full-width"><label>Płatność</label><select id="m-platnosc"><option value="Gotówka" ${z.platnosc=='Gotówka'?'selected':''}>Gotówka</option><option value="Przelew" ${z.platnosc=='Przelew'?'selected':''}>Przelew</option></select></div>
+            <input type="hidden" id="m-p" value="${z.p||0}"><input type="hidden" id="m-winda" value="${z.winda||1}">`;
+        document.getElementById('edit-modal').style.display = 'flex';
+    }
+    function closeModal() { document.getElementById('edit-modal').style.display = 'none'; }
+    async function updateZlecenie() { await db.collection("zamowienia").doc(document.getElementById('edit-id').value).update(oblicz("modal")); closeModal(); }
+
+    function renderCrewPickers() { const el = document.getElementById('crew-selector-main'); el.innerHTML = ""; workers.forEach(w => { const opt = document.createElement('div'); opt.className = `crew-opt ${selectedWorkers.includes(w.name) ? 'selected' : ''}`; opt.innerText = w.name; opt.onclick = () => { if(selectedWorkers.includes(w.name)) selectedWorkers = selectedWorkers.filter(n => n !== w.name); else selectedWorkers.push(w.name); renderCrewPickers(); oblicz(); }; el.appendChild(opt); }); }
+    function renderCrewListFull() { const el = document.getElementById('crew-list-full'); el.innerHTML = ""; workers.forEach(w => { el.innerHTML += `<div class="card" style="display:flex; justify-content:space-between;"><b>${w.name}</b><span onclick="usunPracownika('${w.id}')" style="color:var(--danger); cursor:pointer; font-weight:bold;">USUŃ</span></div>`; }); }
+    async function dodajPracownika() { const n = document.getElementById('newCrewName').value; if(n) await db.collection("pracownicy").add({ name: n }); document.getElementById('newCrewName').value=""; }
+    async function usunPracownika(id) { if(confirm("Usunąć pracownika?")) await db.collection("pracownicy").doc(id).delete(); }
+    
+    function wyczysc() { document.getElementById('klient').value = ""; document.getElementById('adres').value = ""; selectedWorkers = []; renderCrewPickers(); oblicz(); }
+    function switchTab(t) { document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); document.getElementById('view-'+t).classList.add('active'); event.currentTarget.classList.add('active'); }
     function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
 
-    // --- GENERATOR PDF ---
+    // PDF WYCENY
     async function drukuj() {
-        const d = oblicz(); 
-        document.getElementById('pdf-moja-firma').innerText = document.getElementById('mojaFirma').value; 
-        document.getElementById('pdf-klient-name').innerText = d.klient + " | " + d.adres; 
-        document.getElementById('pdf-data-dzis').innerText = new Date().toLocaleDateString(); 
-        document.getElementById('pdf-total-suma').innerText = d.total.toFixed(2) + " PLN"; 
-        document.getElementById('pdf-tabela-body').innerHTML = `
-            <tr><td style="padding:15px; border:1px solid #ddd;">Koszt robocizny</td><td style="padding:15px; border:1px solid #ddd; text-align:right;">${d.c_praca.toFixed(2)} zł</td></tr>
-            <tr><td style="padding:15px; border:1px solid #ddd;">Utylizacja odpadów (${d.w}t)</td><td style="padding:15px; border:1px solid #ddd; text-align:right;">${d.c_utyl.toFixed(2)} zł</td></tr>
-            <tr><td style="padding:15px; border:1px solid #ddd;">Transport i logistyka (${d.km}km)</td><td style="padding:15px; border:1px solid #ddd; text-align:right;">${d.c_trans.toFixed(2)} zł</td></tr>`;
-        const canvas = await html2canvas(document.getElementById('pdf-template'), { scale: 2 });
-        const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, (canvas.height * 210) / canvas.width);
-        window.open(URL.createObjectURL(pdf.output('blob')), '_blank');
+        const d = oblicz(); document.getElementById('pdf-moja-firma').innerText = document.getElementById('mojaFirma').value; document.getElementById('pdf-klient-name').innerText = d.klient; document.getElementById('pdf-total-suma').innerText = "SUMA: " + d.total.toFixed(2) + " PLN";
+        document.getElementById('pdf-tabela-body').innerHTML = `<tr><td style="padding:15px; border:1px solid #ddd;">Robocizna</td><td style="padding:15px; border:1px solid #ddd; text-align:right;">${d.c_praca.toFixed(2)} zł</td></tr><tr><td style="padding:15px; border:1px solid #ddd;">Utylizacja</td><td style="padding:15px; border:1px solid #ddd; text-align:right;">${d.c_utyl.toFixed(2)} zł</td></tr><tr><td style="padding:15px; border:1px solid #ddd;">Transport i Auto</td><td style="padding:15px; border:1px solid #ddd; text-align:right;">${d.c_trans.toFixed(2)} zł</td></tr>`;
+        const canvas = await html2canvas(document.getElementById('pdf-template'), {scale: 2});
+        const pdf = new jspdf.jsPDF(); pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 150); window.open(URL.createObjectURL(pdf.output('blob')), '_blank');
     }
 </script>
 </body>
 </html>
-
