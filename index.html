@@ -202,7 +202,9 @@
         const btn = document.getElementById('btn-calc-dist');
         btn.innerText = "⌛ SZUKAM NAJKRÓTSZEJ DROGI...";
         btn.disabled = true;
-
+// Używamy darmowego proxy, aby ominąć błąd CORS
+    const proxyUrl = "https://corsproxy.io/?";
+        
         try {
             let bestTotalKm = 9999;
             
@@ -212,9 +214,16 @@
                 let totalMeters = 0;
 
                 for(let i=0; i < stops.length - 1; i++) {
-                    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(stops[i])}&destinations=${encodeURIComponent(stops[i+1])}&key=${GOOGLE_KEY}`;
-                    const resp = await fetch(url);
+
+
+                    const googleUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(stops[i])}&destinations=${encodeURIComponent(stops[i+1])}&key=${GOOGLE_KEY}`;
+                
+                    const resp = await fetch(proxyUrl + encodeURIComponent(googleUrl));
                     const data = await resp.json();
+                    
+                    //const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(stops[i])}&destinations=${encodeURIComponent(stops[i+1])}&key=${GOOGLE_KEY}`;
+                    //const resp = await fetch(url);
+                   // const data = await resp.json();
                     
                     if(data.rows[0].elements[0].status === "OK") {
                         totalMeters += data.rows[0].elements[0].distance.value;
@@ -396,3 +405,4 @@
 </script>
 </body>
 </html>
+
