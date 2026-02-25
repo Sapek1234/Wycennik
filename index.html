@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Zarządzania PRO v4.4</title>
+    <title>System Zarządzania PRO v4.8</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -24,6 +24,12 @@
         .card { background: var(--bg-card); padding: 20px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.2); margin-bottom: 20px; }
         .view-section { display: none; }
         .view-section.active { display: block; }
+
+        .filter-group { display: flex; gap: 5px; margin-bottom: 20px; justify-content: center; }
+        .filter-btn { padding: 8px 15px; border: 1px solid var(--accent); background: transparent; color: var(--accent); border-radius: 20px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .filter-btn.active { background: var(--accent); color: white; }
+
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--secondary); color: white; padding: 12px 25px; border-radius: 30px; display: none; z-index: 10001; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
         #edit-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; }
         .modal-content { background: var(--bg-card); width: 90%; max-width: 500px; padding: 25px; border-radius: 15px; max-height: 90vh; overflow-y: auto; position: relative; }
@@ -68,6 +74,8 @@
     </style>
 </head>
 <body data-theme="dark">
+
+<div id="toast">☁️ Zapisano w chmurze!</div>
 
 <div id="lock-screen">
     <div class="pass-box">
@@ -139,10 +147,18 @@
 
         <div id="view-stats" class="view-section">
             <div class="card">
-                <h3 style="margin-top:0;">📊 Analiza Finansowa (Tylko Zrobione)</h3>
+                <h3 style="margin-top:0; text-align: center;">📊 Porównanie Zysku i Kosztów</h3>
+                
+                <div class="filter-group">
+                    <button class="filter-btn" onclick="setFilter('week', this)">TYDZIEŃ</button>
+                    <button class="filter-btn active" onclick="setFilter('month', this)">MIESIĄC</button>
+                    <button class="filter-btn" onclick="setFilter('quarter', this)">KWARTAŁ</button>
+                    <button class="filter-btn" onclick="setFilter('year', this)">ROK</button>
+                </div>
+
                 <div class="stats-grid">
-                    <div class="stat-box"><div class="stat-val" id="st-obrot">0 zł</div><div class="stat-lbl">Obrót Mies.</div></div>
-                    <div class="stat-box"><div class="stat-val" id="st-zysk-laczny" style="color:var(--secondary)">0 zł</div><div class="stat-lbl">Łączny Zysk</div></div>
+                    <div class="stat-box"><div class="stat-val" id="st-obrot">0 zł</div><div class="stat-lbl">Obrót</div></div>
+                    <div class="stat-box"><div class="stat-val" id="st-zysk-laczny" style="color:var(--secondary)">0 zł</div><div class="stat-lbl">Zysk Ekipy</div></div>
                     <div class="stat-box"><div class="stat-val" id="st-ile">0</div><div class="stat-lbl">Zlecenia</div></div>
                 </div>
                 <div style="height: 350px;"><canvas id="lineChart"></canvas></div>
@@ -169,13 +185,22 @@
 <script>
     const TAJNE_HASLO = "1234"; 
     const nazwyMiesiecy = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+    let currentFilter = 'month';
+    const cashSound = new Audio('https://www.soundjay.com/misc/sounds/cash-register-05.mp3');
 
     function checkPass() {
         if(document.getElementById('passInput').value === TAJNE_HASLO) {
+            cashSound.play().catch(() => {}); // Odblokowanie audio
             document.getElementById('lock-screen').style.display = 'none';
             document.getElementById('app').style.display = 'grid';
             oblicz();
         } else { alert("Błędne hasło!"); }
+    }
+
+    function showToast() {
+        const t = document.getElementById('toast');
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 2000);
     }
 
     function switchTab(tab) {
@@ -184,6 +209,13 @@
         document.getElementById('view-' + tab).classList.add('active');
         event.currentTarget.classList.add('active');
         if(tab === 'stats') updateStatsCharts();
+    }
+
+    function setFilter(period, btn) {
+        currentFilter = period;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateStatsCharts();
     }
 
     const firebaseConfig = {
@@ -244,24 +276,61 @@
     }
 
     function updateStatsCharts() {
-        let obrotMies = 0, zyskLaczny = 0, count = 0, currentM = new Date().getMonth();
-        let miesiaceDane = Array(12).fill(0);
+        let obrotPeriod = 0, zyskLaczny = 0, count = 0;
+        let labels = [], dataPointsZysk = [], dataPointsKoszty = [];
+        const now = new Date();
 
-        lastSnapData.forEach(z => {
-            // TUTAJ KLUCZOWA ZMIANA: tylko zrobione
-            if(z.done === true) {
-                const zDate = new Date(z.timestamp);
-                const mIdx = zDate.getMonth();
-                miesiaceDane[mIdx] += (z.c_praca || 0);
-                zyskLaczny += (z.c_praca || 0);
-                if(mIdx === currentM) { 
-                    obrotMies += (z.total || 0); 
-                    count++; 
-                }
+        const filteredData = lastSnapData.filter(z => {
+            if(!z.done) return false;
+            const zDate = new Date(z.timestamp);
+            if(currentFilter === 'week') {
+                const diff = (now - zDate) / (1000 * 60 * 60 * 24);
+                return diff <= 7;
             }
+            if(currentFilter === 'month') {
+                return zDate.getMonth() === now.getMonth() && zDate.getFullYear() === now.getFullYear();
+            }
+            if(currentFilter === 'quarter') {
+                const qNow = Math.floor(now.getMonth() / 3);
+                const qZ = Math.floor(zDate.getMonth() / 3);
+                return qNow === qZ && zDate.getFullYear() === now.getFullYear();
+            }
+            if(currentFilter === 'year') return zDate.getFullYear() === now.getFullYear();
+            return true;
         });
 
-        document.getElementById('st-obrot').innerText = obrotMies.toFixed(0) + " zł";
+        if(currentFilter === 'year' || currentFilter === 'quarter') {
+            labels = nazwyMiesiecy;
+            dataPointsZysk = Array(12).fill(0);
+            dataPointsKoszty = Array(12).fill(0);
+            filteredData.forEach(z => {
+                const m = new Date(z.timestamp).getMonth();
+                dataPointsZysk[m] += (z.c_praca || 0);
+                dataPointsKoszty[m] += ((z.c_utyl || 0) + (z.c_trans || 0));
+                obrotPeriod += (z.total || 0);
+                zyskLaczny += (z.c_praca || 0);
+                count++;
+            });
+        } else {
+            // Grupowanie po dniach dla tygodnia/miesiąca
+            const dailyData = {};
+            filteredData.forEach(z => {
+                const d = new Date(z.timestamp).toLocaleDateString();
+                if(!dailyData[d]) dailyData[d] = { z: 0, k: 0 };
+                dailyData[d].z += (z.c_praca || 0);
+                dailyData[d].k += (z.c_utyl || 0) + (z.c_trans || 0);
+                obrotPeriod += (z.total || 0);
+                zyskLaczny += (z.c_praca || 0);
+                count++;
+            });
+            labels = Object.keys(dailyData).sort((a,b) => {
+                return new Date(a.split('.').reverse().join('-')) - new Date(b.split('.').reverse().join('-'));
+            });
+            dataPointsZysk = labels.map(l => dailyData[l].z);
+            dataPointsKoszty = labels.map(l => dailyData[l].k);
+        }
+
+        document.getElementById('st-obrot').innerText = obrotPeriod.toFixed(0) + " zł";
         document.getElementById('st-zysk-laczny').innerText = zyskLaczny.toFixed(0) + " zł";
         document.getElementById('st-ile').innerText = count;
 
@@ -270,24 +339,13 @@
         lineChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: nazwyMiesiecy,
-                datasets: [{
-                    label: 'Zysk Ekipy (PLN)',
-                    data: miesiaceDane,
-                    borderColor: '#45bd62',
-                    backgroundColor: 'rgba(69, 189, 98, 0.2)',
-                    fill: true,
-                    tension: 0.3
-                }]
+                labels: labels,
+                datasets: [
+                    { label: 'Zysk', data: dataPointsZysk, borderColor: '#45bd62', backgroundColor: 'rgba(69, 189, 98, 0.1)', fill: true, tension: 0.3 },
+                    { label: 'Koszty', data: dataPointsKoszty, borderColor: '#ff4757', backgroundColor: 'rgba(255, 71, 87, 0.1)', fill: true, tension: 0.3 }
+                ]
             },
-            options: { 
-                maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#e4e6eb' } } },
-                scales: { 
-                    y: { ticks: { color: '#e4e6eb' }, grid: { color: '#444' } },
-                    x: { ticks: { color: '#e4e6eb' }, grid: { color: '#444' } }
-                }
-            }
+            options: { maintainAspectRatio: false, plugins: { legend: { labels: { color: '#e4e6eb' } } }, scales: { y: { ticks: { color: '#e4e6eb' } }, x: { ticks: { color: '#e4e6eb' } } } }
         });
     }
 
@@ -295,7 +353,7 @@
         const d = oblicz();
         if(!d.klient) return alert("Podaj klienta!");
         await db.collection("zamowienia").add({ ...d, data: new Date().toLocaleDateString(), done: false });
-        alert("Zapisano!");
+        showToast();
     }
 
     db.collection("zamowienia").orderBy("timestamp", "desc").onSnapshot(snap => {
@@ -321,7 +379,13 @@
         if(document.getElementById('view-stats').classList.contains('active')) updateStatsCharts();
     });
 
-    async function toggleDone(id, status) { await db.collection("zamowienia").doc(id).update({ done: !status }); }
+    async function toggleDone(id, status) { 
+        if(!status) { 
+            cashSound.currentTime = 0;
+            cashSound.play().catch(e => console.log("Audio play error")); 
+        }
+        await db.collection("zamowienia").doc(id).update({ done: !status }); 
+    }
 
     function openEditModal(id, z) {
         document.getElementById('edit-id').value = id;
